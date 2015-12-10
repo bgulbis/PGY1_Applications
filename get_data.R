@@ -66,4 +66,4 @@ download_url <- json8$export_files$download_url
 
 # download the data
 mydata <- GET(download_url)
-json9 <- content(mydata)
+ref.data <- content(mydata)
