@@ -5,65 +5,69 @@
 # reference: http://help.webadmit.org/webadmit2016/documents/WebAdMIT_Export_Manager_API.pdf
 
 library(httr)
+library(jsonlite)
 
 mykey <- "36e185e0cd26c255b1c36a30b2b4468b"
-# myapp <- oauth_app("phorcas", key = mykey)
-
-baseurl <- "https://api.webadmit.org"
-# base <- handle(baseurl)
-url <- "/api/v1/user_identities"
-
-gourl <- paste(baseurl, url, sep="")
+base.url <- "https://api.webadmit.org"
 
 # get the user_identity_id
-userid <- GET(gourl, add_headers("x-api-key" = mykey))
-json1 <- content(userid)
-json2 <- fromJSON(toJSON(json1))
-json2
-
-export.url <- "/api/v1/exports"
-gourl <- paste(baseurl, export.url, sep="")
-
-exportid <- GET(gourl, add_headers("x-api-key" = mykey))
-json3 <- content(exportid)
-json4 <- fromJSON(toJSON(json3))
+userid.url <- paste(base.url, "/api/v1/user_identities", sep = "")
+userid <- GET(userid.url, add_headers("x-api-key" = mykey))
+userid.json <- content(userid)
+userid.json <- fromJSON(toJSON(userid.json))
 
 # select the user_identity_id which corresponds to the desired program
-myuserid <- json2$user_identities[[7, 1]]
-export.userid <- paste(baseurl, "/api/v1/user_identities/", myuserid, "/exports", sep = "")
+myuserid <- userid.json$user_identities[[7, 1]]
 
 # get all export_id values for the selected user
-exportid2 <- GET(export.userid, add_headers("x-api-key" = mykey))
-json5 <- content(exportid2)
-json6 <- fromJSON(toJSON(json5))
-json6
+exportid.url <- paste(base.url, "/api/v1/user_identities/", myuserid, "/exports", sep = "")
+exportid <- GET(exportid.url, add_headers("x-api-key" = mykey))
+exportid.json <- content(exportid)
+exportid.json <- fromJSON(toJSON(exportid.json))
 
 # select the export_id for the desired export (saved in Export Manager)
-myexportid <- json6$exports[[12, 1]]
-run_export <- paste(baseurl, "/api/v1/user_identities/", myuserid, "/exports/", myexportid, "/export_files", sep = "")
+myexportid <- exportid.json$exports[[12, 1]]
+export.run.url <- paste(base.url, "/api/v1/user_identities/", myuserid, "/exports/", myexportid, "/export_files", sep = "")
 
 # trigger the export process to run
-export_run <- POST(run_export, add_headers("x-api-key" = mykey))
-json7 <- content(export_run)
+export.runid <- POST(export.run.url, add_headers("x-api-key" = mykey))
+export.runid.json <- content(export.runid)
 
 # find the export_file_id, which is the id for the running instance
-runid <- json7$export_files$id
-status_url <- paste(baseurl, "/api/v1/exports/", myexportid, "/export_files/", runid, sep = "")
+runid <- export.runid.json$export_files$id
+status.url <- paste(base.url, "/api/v1/exports/", myexportid, "/export_files/", runid, sep = "")
 
-# check the status of the running instance, when completed will contain the url to download the data
-export_status <- GET(status_url, add_headers("x-api-key" = mykey))
-json8 <- content(export_status)
-json8
+# check the status of the running instance every 2 minutes until it's available;
+# when completed will contain the url to download the data
+repeat {
+    # get the status of the running instance, 
+    statusid <- GET(status.url, add_headers("x-api-key" = mykey))
+    statusid.json <- content(statusid)
+    
+    if (statusid.json$export_files$status == "Available") {
+        # get the url to use for downloading the data; expires after ~30 seconds
+        download.url <- statusid.json$export_files$download_url
+        
+        # download the data
+        mydata <- GET(download.url)
+        ref.data <- content(mydata)
+        
+        print("Export complete")
+        
+        # end repeat loop
+        break
+    } else {
+        msg <- paste("Export running... Next check at: ", Sys.time() + 120, sep = "")
+        print(msg)
+        Sys.sleep(120)
+    }
+}
 
-# can check status of all running instances, does not include download url
-run_batch <- paste(baseurl, "/api/v1/user_identities/", myuserid, "/export_files", sep = "")
-export_status <- GET(run_batch, add_headers("x-api-key" = mykey))
-json8a <- content(export_status)
-json8a
+# other options
+# 
+# list of all exports
+# export.url <- paste(base.url, "/api/v1/exports", sep="")
 
-# get the url to use for downloading the data; expires after ~30 seconds
-download_url <- json8$export_files$download_url
+# check status of all running instances, does not include download url
+# run_batch <- paste(base.url, "/api/v1/user_identities/", myuserid, "/export_files", sep = "")
 
-# download the data
-mydata <- GET(download_url)
-ref.data <- content(mydata)

@@ -5,5 +5,5 @@
 
 library(stringr)
 
-low.perform <- mutate(lor, low = str_count(comment, regex("(need|room)(.*)improvement", ignore_case = TRUE))) %>%
+low.perform <- mutate(lor, low = str_count(comment, regex("(need|room)(.*)improv", ignore_case = TRUE))) %>%
     filter(low > 0)
