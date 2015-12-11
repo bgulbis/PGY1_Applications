@@ -1,0 +1,22 @@
+---
+title: "Textual Analysis of Reference Comments"
+author: "Brian Gulbis"
+date: "December 11, 2015"
+output: html_document
+---
+
+```{r}
+library(pander)
+library(stringr)
+lor <- readRDS("lor.Rds")
+```
+
+## Improve
+
+```{r}
+text <- str_extract(lor$comment, "([^ ]+ +){0,5}improv([^ ]*)( +[^ ]+){0,5}")
+temp <- is.na(text)
+text <- text[temp == FALSE]
+pander(as.list(text))
+```
+

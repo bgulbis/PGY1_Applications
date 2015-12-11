@@ -7,12 +7,16 @@ library(stringr)
 library(dplyr)
 
 low.perform <- lor %>%
-    mutate(improve = str_count(comment, regex("(need|room|could|area)(s|ed|ing)?( +[^ ]+){0,5} improve", ignore_case = TRUE)), 
+    mutate(length = str_length(comment),
+           improve = str_count(comment, regex("(need|room|could|area)(s|ed|ing)?( +[^ ]+){0,5} improv", ignore_case = TRUE)), 
            struggle = str_count(comment, regex("struggle", ignore_case = TRUE)),
            concern = str_count(comment, regex("concern", ignore_case = TRUE)),
            difficult = str_count(comment, regex("difficult", ignore_case = TRUE))) 
 
-test <- grep("improve", lor$comment, ignore.case = TRUE, value = TRUE)
+test <- grep("improv", lor$comment, ignore.case = TRUE, value = TRUE)
+text <- str_extract(lor$comment, "([^ ]+ +){0,5}improv([^ ]*)( +[^ ]+){0,5}")
+temp <- is.na(text)
+text[temp == FALSE]
 
 # did/continue to/consistently improve; big/huge/great/significant improvement; improve(d) greatly/quickly
 # will succeed; self-motivated; without prompt(ing/ed); seek(s/ing) out ways; independent

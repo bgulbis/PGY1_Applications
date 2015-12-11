@@ -38,3 +38,5 @@ lor <- inner_join(rating, comments, by=c("cas_id", "quality", "ref_num")) %>%
     arrange(cas_id, quality, ref_num)
 
 rm(rating, comments)
+
+saveRDS(lor, "lor.Rds")
