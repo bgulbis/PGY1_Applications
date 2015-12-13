@@ -100,3 +100,5 @@ temp <- is.na(text)
 text <- text[temp == FALSE]
 pander(as.list(text))
 ```
+
+## Consistent
