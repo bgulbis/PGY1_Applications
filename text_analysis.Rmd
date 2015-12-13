@@ -2,7 +2,9 @@
 title: "Textual Analysis of Reference Comments"
 author: "Brian Gulbis"
 date: "December 11, 2015"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 ---
 
 ```{r}
@@ -20,3 +22,81 @@ text <- text[temp == FALSE]
 pander(as.list(text))
 ```
 
+## Unfortunate
+
+```{r}
+text <- str_extract(lor$comment, "([^ ]+ +){0,5}unfortun([^ ]*)( +[^ ]+){0,5}")
+temp <- is.na(text)
+text <- text[temp == FALSE]
+pander(as.list(text))
+```
+
+## Struggle
+
+```{r}
+text <- str_extract(lor$comment, "([^ ]+ +){0,5}struggl([^ ]*)( +[^ ]+){0,5}")
+temp <- is.na(text)
+text <- text[temp == FALSE]
+pander(as.list(text))
+```
+
+## Concern
+
+```{r}
+text <- str_extract(lor$comment, "([^ ]+ +){0,5}concern([^ ]*)( +[^ ]+){0,5}")
+temp <- is.na(text)
+text <- text[temp == FALSE]
+pander(as.list(text))
+```
+
+## Difficult
+
+```{r}
+text <- str_extract(lor$comment, "([^ ]+ +){0,5}difficult([^ ]*)( +[^ ]+){0,5}")
+temp <- is.na(text)
+text <- text[temp == FALSE]
+pander(as.list(text))
+```
+
+## Not
+
+```{r}
+text <- str_extract(lor$comment, "([^ ]+ +){0,5}(did|could|would|does|was|has|had|will|should|can) not( +[^ ]+){0,5}")
+temp <- is.na(text)
+text <- text[temp == FALSE]
+pander(as.list(text))
+```
+
+```{r}
+text <- str_extract(lor$comment, "([^ ]+ +){0,5}(didn\'t|couldn\'t|wouldn\'t|doesn\'t|wasn\'t|hadn\'t|hasn\'t|won\'t|shouldn\'t|can\'t|cannot)( +[^ ]+){0,5}")
+temp <- is.na(text)
+text <- text[temp == FALSE]
+pander(as.list(text))
+```
+
+## Never
+
+```{r}
+text <- str_extract(lor$comment, "([^ ]+ +){0,5}never([^ ]*)( +[^ ]+){0,5}")
+temp <- is.na(text)
+text <- text[temp == FALSE]
+pander(as.list(text))
+```
+
+## Needed
+
+```{r}
+text <- str_extract(lor$comment, "([^ ]+ +){0,5}need([^ ]*)( +[^ ]+){0,5}")
+temp <- is.na(text)
+text <- text[temp == FALSE]
+pander(as.list(text))
+```
+
+## Required
+
+```{r}
+text <- str_extract(lor$comment, "([^ ]+ +){0,5}requir([^ ]*)( +[^ ]+){0,5}")
+temp <- is.na(text)
+text <- text[temp == FALSE]
+pander(as.list(text))
+```
