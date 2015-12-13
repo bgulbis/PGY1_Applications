@@ -7,8 +7,12 @@ library(tidyr)
 library(dplyr)
 library(stringr)
 
+if (!exists("download.data")) {
+    download.data <- readRDS("phorcas_data.Rds")
+}
+
 # determine how many references there were for each candidate, remove duplicates
-references <- select(ref.data, cas_id:evaluator_id_for_references_3) %>%
+references <- select(download.data, cas_id:evaluator_id_for_references_3) %>%
     gather(ref_num, writer_id, evaluator_id_for_references_0:evaluator_id_for_references_3, na.rm = TRUE) %>%
     mutate(ref_num = as.numeric(str_extract(ref_num, "[0-9]"))) %>%
     group_by(cas_id, writer_id) %>%
@@ -16,7 +20,7 @@ references <- select(ref.data, cas_id:evaluator_id_for_references_3) %>%
 
 # gather the ratings into long data format, remove those rows which correspond
 # to duplicate evaluations
-rating <- select(ref.data, cas_id, matches("reference_(.*)_rating_[0-3]$")) %>%
+rating <- select(download.data, cas_id, matches("reference_(.*)_rating_[0-3]$")) %>%
     gather(ref_num, rating, starts_with("reference_"), na.rm = TRUE) %>%
     extract(ref_num, c("quality", "ref_num"), "reference_(.*)_rating_([0-3])$") %>%
     mutate(ref_num = as.numeric(ref_num),
@@ -26,7 +30,7 @@ rating <- select(ref.data, cas_id, matches("reference_(.*)_rating_[0-3]$")) %>%
 
 # gather the comments into long data format, remove those rows which correspond
 # to duplicate evaluations
-comments <- select(ref.data, cas_id, matches("reference_(.*)_comments_[0-3]$")) %>%
+comments <- select(download.data, cas_id, matches("reference_(.*)_comments_[0-3]$")) %>%
     gather(ref_num, comment, starts_with("reference_"), na.rm = TRUE) %>%
     extract(ref_num, c("quality", "ref_num"), "reference_(.*)_rating_comments_([0-3])$") %>%
     mutate(ref_num = as.numeric(ref_num)) %>%

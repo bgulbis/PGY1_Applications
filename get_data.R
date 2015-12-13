@@ -50,7 +50,7 @@ repeat {
         
         # download the data
         mydata <- GET(download.url)
-        ref.data <- content(mydata)
+        download.data <- content(mydata)
         
         print("Export complete")
         
@@ -62,6 +62,8 @@ repeat {
         Sys.sleep(120)
     }
 }
+
+saveRDS(download.data, "phorcas_data.Rds")
 
 # other options
 # 
