@@ -58,6 +58,15 @@ text <- text[temp == FALSE]
 pander(as.list(text))
 ```
 
+```{r}
+text <- grep("difficult[^y]", lor$comment, value = TRUE, ignore.case = TRUE)
+temp <- is.na(text)
+text <- text[temp == FALSE]
+pander(as.list(text))
+```
+
+
+
 ## Not
 
 ```{r}
