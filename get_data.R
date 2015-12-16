@@ -6,6 +6,7 @@
 
 library(httr)
 library(jsonlite)
+library(dplyr)
 
 mykey <- "36e185e0cd26c255b1c36a30b2b4468b"
 base.url <- "https://api.webadmit.org"
@@ -17,7 +18,18 @@ userid.json <- content(userid)
 userid.json <- fromJSON(toJSON(userid.json))
 
 # select the user_identity_id which corresponds to the desired program
-myuserid <- userid.json$user_identities[[7, 1]]
+myuserid.2014 <- userid.json$user_identities %>%
+    mutate_each(funs(unlist(.))) %>%
+    filter(organization == "MEMORIAL HERMANN/TEXAS MED CTR", 
+           cycle == "2014 - 2015")
+
+myuserid.2015 <- userid.json$user_identities %>%
+    mutate_each(funs(unlist(.))) %>%
+    filter(organization == "Memorial Hermann/Texas Medical Center", 
+           cycle == "2015 - 2016")
+
+myuserid <- myuserid.2014$id
+myuserid <- myuserid.2015$id
 
 # get all export_id values for the selected user
 exportid.url <- paste(base.url, "/api/v1/user_identities/", myuserid, "/exports", sep = "")
