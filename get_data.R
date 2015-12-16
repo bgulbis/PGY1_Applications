@@ -28,7 +28,7 @@ myuserid.2015 <- userid.json$user_identities %>%
     filter(organization == "Memorial Hermann/Texas Medical Center", 
            cycle == "2015 - 2016")
 
-myuserid <- myuserid.2014$id
+# myuserid <- myuserid.2014$id
 myuserid <- myuserid.2015$id
 
 # get all export_id values for the selected user
