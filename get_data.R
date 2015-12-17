@@ -37,45 +37,54 @@ exportid <- GET(exportid.url, add_headers("x-api-key" = mykey))
 exportid.json <- content(exportid)
 exportid.json <- fromJSON(toJSON(exportid.json))
 
-# select the export_id for the desired export (saved in Export Manager)
-myexportid <- exportid.json$exports[[12, 1]]
-export.run.url <- paste(base.url, "/api/v1/user_identities/", myuserid, "/exports/", myexportid, "/export_files", sep = "")
-
-# trigger the export process to run
-export.runid <- POST(export.run.url, add_headers("x-api-key" = mykey))
-export.runid.json <- content(export.runid)
-
-# find the export_file_id, which is the id for the running instance
-runid <- export.runid.json$export_files$id
-status.url <- paste(base.url, "/api/v1/exports/", myexportid, "/export_files/", runid, sep = "")
-
-# check the status of the running instance every 2 minutes until it's available;
-# when completed will contain the url to download the data
-repeat {
-    # get the status of the running instance, 
-    statusid <- GET(status.url, add_headers("x-api-key" = mykey))
-    statusid.json <- content(statusid)
+exportids <- exportid.json$exports %>%
+    filter(name == "API_References" | name == "API_Intent")
     
-    if (statusid.json$export_files$status == "Available") {
-        # get the url to use for downloading the data; expires after ~30 seconds
-        download.url <- statusid.json$export_files$download_url
-        
-        # download the data
-        mydata <- GET(download.url)
-        download.data <- content(mydata)
-        
-        print("Export complete")
-        
-        # end repeat loop
-        break
-    } else {
-        msg <- paste("Export running... Next check at: ", Sys.time() + 120, sep = "")
-        print(msg)
-        Sys.sleep(120)
+get_data <- function(export.id) {
+    # select the export_id for the desired export (saved in Export Manager)
+    export.run.url <- paste(base.url, "/api/v1/user_identities/", myuserid, "/exports/", export.id, "/export_files", sep = "")
+    
+    # trigger the export process to run
+    export.runid <- POST(export.run.url, add_headers("x-api-key" = mykey))
+    export.runid.json <- content(export.runid)
+    
+    # find the export_file_id, which is the id for the running instance
+    runid <- export.runid.json$export_files$id
+    status.url <- paste(base.url, "/api/v1/exports/", export.id, "/export_files/", runid, sep = "")
+
+    # check the status of the running instance every 2 minutes until it's available;
+    # when completed will contain the url to download the data
+    repeat {
+        # get the status of the running instance, 
+        statusid <- GET(status.url, add_headers("x-api-key" = mykey))
+        statusid.json <- content(statusid)
+
+        if (statusid.json$export_files$status == "Available") {
+            # get the url to use for downloading the data; expires after ~30 seconds
+            download.url <- statusid.json$export_files$download_url
+            
+            # download the data
+            mydata <- GET(download.url)
+            download.data <- content(mydata)
+            
+            print("Export complete")
+            
+            # end repeat loop
+            break
+        } else {
+            msg <- paste("Export running... Next check at: ", Sys.time() + 120, sep = "")
+            print(msg)
+            Sys.sleep(120)
+        }
     }
+    
+    # return the downloaded data
+    download.data
 }
 
-saveRDS(download.data, "phorcas_data.Rds")
+data <- lapply(exportids$id, get_data)
+
+saveRDS(data, "phorcas_data.Rds")
 
 # other options
 # 
@@ -83,5 +92,8 @@ saveRDS(download.data, "phorcas_data.Rds")
 # export.url <- paste(base.url, "/api/v1/exports", sep="")
 
 # check status of all running instances, does not include download url
-# run_batch <- paste(base.url, "/api/v1/user_identities/", myuserid, "/export_files", sep = "")
+# batch.url <- paste(base.url, "/api/v1/user_identities/", myuserid.2014$id, "/export_files", sep = "")
+# export.batch <- POST(batch.url, add_headers("x-api-key" = mykey))
+# batch.json <- content(export.batch)
+# batch.json <- fromJSON(toJSON(batch.json))
 
