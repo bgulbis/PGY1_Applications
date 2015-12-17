@@ -38,7 +38,7 @@ exportid.json <- content(exportid)
 exportid.json <- fromJSON(toJSON(exportid.json))
 
 exportids <- exportid.json$exports %>%
-    filter(name == "API_References" | name == "API_Intent")
+    filter(name == "API_References" | name == "API_Intent" | name == "API_Applicants")
     
 get_data <- function(export.id) {
     # select the export_id for the desired export (saved in Export Manager)
@@ -72,9 +72,11 @@ get_data <- function(export.id) {
             # end repeat loop
             break
         } else {
-            msg <- paste("Export running... Next check at: ", Sys.time() + 120, sep = "")
+            # time to wait in seconds; adjust based on how much data being pulled
+            delay <- 30
+            msg <- paste("Export running... Next check at: ", Sys.time() + delay, sep = "")
             print(msg)
-            Sys.sleep(120)
+            Sys.sleep(delay)
         }
     }
     
@@ -83,6 +85,7 @@ get_data <- function(export.id) {
 }
 
 data <- lapply(exportids$id, get_data)
+names(data) <- exportids$name
 
 saveRDS(data, "phorcas_data.Rds")
 

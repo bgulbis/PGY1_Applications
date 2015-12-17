@@ -6,6 +6,7 @@
 library(tidyr)
 library(dplyr)
 library(stringr)
+library(lubridate)
 
 if (!exists("data")) {
     data <- readRDS("phorcas_data.Rds")
@@ -15,8 +16,15 @@ if (!exists("data")) {
 program.id <- 1634
 
 # get raw data for letters and references
-data.ref <- data[[1]]
-data.intent <- data[[2]]
+data.ref <- data$API_References
+data.intent <- data$API_Intent
+data.applicant <- data$API_Applicants
+
+# tidy applicant data
+applicants <- data.applicant %>%
+    filter(designation_program_lookup_id == 1634) %>%
+    mutate(pharmacy_school_gpa_collected = ifelse(pharmacy_school_gpa_collected == "Y", TRUE, FALSE),
+           pharmacy_school_graduation_date = ymd(pharmacy_school_graduation_date))    
 
 # determine how many references there were for each candidate, remove duplicates
 references <- data.ref %>%
