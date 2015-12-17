@@ -47,7 +47,7 @@ comments <- data.ref %>%
     gather(ref_num, comment, starts_with("reference_"), na.rm = TRUE) %>%
     extract(ref_num, c("quality", "ref_num"), "reference_(.*)_rating_comments_([0-3])$") %>%
     mutate(ref_num = as.numeric(ref_num), 
-           comment = str_replace_all(comment, "\\n", " ")) %>%
+           comment = str_trim(str_replace_all(comment, "\\n", " "), side = "both")) %>%
     inner_join(references, by=c("cas_id", "ref_num")) %>%
     select(cas_id:comment)
 
@@ -58,3 +58,17 @@ lor <- inner_join(rating, comments, by=c("cas_id", "quality", "ref_num")) %>%
 rm(rating, comments)
 
 saveRDS(lor, "lor.Rds")
+
+# gather the letter of intent information into long data format
+intent <- data.intent %>%
+    filter(designation_program_lookup_id == 1634) %>%
+    select(cas_id, matches("assignments_")) %>%
+    gather(question, response, starts_with("assignments_"), na.rm = TRUE) %>%
+    mutate(response = str_trim(str_replace_all(response, "\\n", " "), side = "both"),
+           question = str_replace(question, "(.*)why_do_you_want(.*)", "motivation"),
+           question = str_replace(question, "(.*)what_are_you_expecting(.*)", "expectations"),
+           question = str_replace(question, "(.*)what_are_your_goals(.*)", "goals"),
+           question = str_replace(question, "(.*)what_can_you_bring(.*)", "contributions")) %>%
+    mutate(question = factor(question))
+
+saveRDS(intent, "intent.Rds")
