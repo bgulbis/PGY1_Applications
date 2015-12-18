@@ -8,3 +8,21 @@ output:
     keep_tex: yes
 ---
 
+```{r}
+if (!exists("applicants")) {
+    applicants <- readRDS("applicants.Rds")
+}
+
+if (!exists("interests")) {
+    interests <- readRDS("interests.Rds")
+}
+
+if (!exists("lor")) {
+    lor <- readRDS("lor.Rds")
+}
+
+if (!exists("intent")) {
+    intent <- readRDS("intent.Rds")
+}
+```
+
