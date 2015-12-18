@@ -3,6 +3,10 @@ output:
   pdf_document
 ---
 
+```{r echo=FALSE}
+library(pander)
+```
+
 ```{r echo=FALSE, warning=FALSE}
 if (!exists("applicants")) {
     applicants <- readRDS("applicants.Rds")
@@ -31,19 +35,47 @@ if (!exists("lor")) {
 }
 
 time.mgmt <- lor[lor$cas_id == app.id & lor$quality == "time_management", "comment"]
+prob.solve <- lor[lor$cas_id == app.id & lor$quality == "clinical_problem_solving_skills", "comment"]
+independ <- lor[lor$cas_id == app.id & lor$quality == "independence", "comment"]
+mature <- lor[lor$cas_id == app.id & lor$quality == "emotional_maturity", "comment"]
 
 if (!exists("intent")) {
     intent <- readRDS("intent.Rds")
 }
+
+loi <- intent[intent$cas_id == app.id, ]
 ```
 
-### `r app.name` - `r school` (GPA: `r gpa`; Graduation Date: `r grad.date`)
+## `r app.name` - `r school` 
+
+GPA: `r gpa`; Graduation Date: `r grad.date`
 
 Interests: `r app.interest`
 
-#### References
+### Letter of Intent
+```{r echo=FALSE}
+pander(as.list(loi$response))
+```
 
-Quality | Response
---------|---------
-Time Management | `r time.mgmt`
 
+### References
+
+#### Time Management 
+```{r echo=FALSE}
+pander(as.list(time.mgmt))
+```
+
+#### Problem Solving
+```{r echo=FALSE}
+pander(as.list(prob.solve))
+```
+
+#### Independence
+```{r echo=FALSE}
+pander(as.list(independ))
+```
+
+#### Maturity
+```{r echo=FALSE}
+pander(as.list(mature))
+```
