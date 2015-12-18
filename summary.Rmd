@@ -1,28 +1,49 @@
 ---
-title: "PGY1 Applicant Summary"
-author: "Brian Gulbis"
-date: "December 17, 2015"
 output: 
-  pdf_document: 
-    fig_caption: yes
-    keep_tex: yes
+  pdf_document
 ---
 
-```{r}
+```{r echo=FALSE, warning=FALSE}
 if (!exists("applicants")) {
     applicants <- readRDS("applicants.Rds")
 }
 
+app.id <- applicants$cas_id[i]
+app.name <- paste(applicants$last_name[i], applicants$first_name[i], sep = ", ")
+school <- applicants$pharmacy_school_name[i]
+
+if (applicants$pharmacy_school_gpa_collected[i] == TRUE) {
+    gpa <- applicants$pharmacy_school_gpa[i]
+} else {
+    gpa <- "Not Available"
+}
+
+grad.date <- applicants$pharmacy_school_graduation_date[i]
+    
 if (!exists("interests")) {
     interests <- readRDS("interests.Rds")
 }
 
+app.interest <- interests[interests$cas_id == app.id, "interest"]
+    
 if (!exists("lor")) {
     lor <- readRDS("lor.Rds")
 }
+
+time.mgmt <- lor[lor$cas_id == app.id & lor$quality == "time_management", "comment"]
 
 if (!exists("intent")) {
     intent <- readRDS("intent.Rds")
 }
 ```
+
+### `r app.name` - `r school` (GPA: `r gpa`; Graduation Date: `r grad.date`)
+
+Interests: `r app.interest`
+
+#### References
+
+Quality | Response
+--------|---------
+Time Management | `r time.mgmt`
 

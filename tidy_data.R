@@ -62,8 +62,9 @@ rating <- data.ref %>%
     filter(designation_program_lookup_id == program.id) %>%
     select(cas_id, matches("reference_(.*)_rating_[0-3]$")) %>%
     gather(ref_num, rating, starts_with("reference_"), na.rm = TRUE) %>%
-    extract(ref_num, c("quality", "ref_num"), "reference_(.*)_rating_([0-3])$", convert = TRUE) %>%
-    mutate(rating = factor(rating, exclude = "")) %>%
+    extract(ref_num, c("quality", "ref_num"), "reference_(.*)_rating_([0-3])$") %>%
+    mutate(ref_num = as.numeric(ref_num),
+           rating = factor(rating, exclude = "")) %>%
     inner_join(references, by=c("cas_id", "ref_num")) %>%
     select(cas_id:rating)
 
@@ -75,16 +76,18 @@ comments <- data.ref %>%
     gather(ref_num, comment, starts_with("reference_"), na.rm = TRUE) %>%
     extract(ref_num, c("quality", "ref_num"), "reference_(.*)_comments_([0-3])$") %>%
     mutate(ref_num = as.numeric(ref_num),
-           quality = factor(str_replace(quality, "_rating", ""), levels = levels(rating$quality)),
-           comment = str_trim(str_replace_all(comment, "\\n", " "), side = "both")) %>%
+           quality = str_replace(quality, "_rating", ""),
+           comment = str_trim(str_replace_all(comment, "\\n", " "), side = "both"),
+           comment = ifelse(comment == "", NA, comment)) %>%
     inner_join(references, by=c("cas_id", "ref_num")) %>%
     select(cas_id:comment)
 
 # combine rating and comments 
-lor <- inner_join(rating, comments, by=c("cas_id", "quality", "ref_num")) %>%
+lor <- full_join(rating, comments, by=c("cas_id", "quality", "ref_num")) %>%
+    mutate(quality = factor(quality)) %>%
     arrange(cas_id, quality, ref_num)
 
-rm(rating, comments)
+# rm(rating, comments)
 
 saveRDS(lor, "lor.Rds")
 
