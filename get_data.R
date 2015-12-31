@@ -38,7 +38,7 @@ exportid.json <- content(exportid)
 exportid.json <- fromJSON(toJSON(exportid.json))
 
 exportids <- exportid.json$exports %>%
-    filter(name == "API_References" | name == "API_Intent" | name == "API_Applicants")
+    filter(name == "API_References" | name == "API_Extraction" | name == "API_Applicants")
     
 get_data <- function(export.id) {
     # select the export_id for the desired export (saved in Export Manager)
@@ -73,7 +73,7 @@ get_data <- function(export.id) {
             break
         } else {
             # time to wait in seconds; adjust based on how much data being pulled
-            delay <- 30
+            delay <- 60
             msg <- paste("Export running... Next check at: ", Sys.time() + delay, sep = "")
             print(msg)
             Sys.sleep(delay)

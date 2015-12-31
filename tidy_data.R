@@ -17,7 +17,7 @@ program.id <- 1634
 
 # get raw data for letters and references
 data.ref <- data$API_References
-data.intent <- data$API_Intent
+data.intent <- data$API_Extraction
 data.applicant <- data$API_Applicants
 
 interest.areas <- c("Not Specified", "Ambulatory Care", "Cardiology", "Critical Care", 
