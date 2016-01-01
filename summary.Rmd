@@ -14,15 +14,15 @@ if (!exists("applicants")) {
 
 app.id <- applicants$cas_id[i]
 app.name <- paste(applicants$last_name[i], applicants$first_name[i], sep = ", ")
-school <- applicants$pharmacy_school_name[i]
+school <- applicants$school[i]
 
-if (applicants$pharmacy_school_gpa_collected[i] == TRUE) {
-    gpa <- applicants$pharmacy_school_gpa[i]
+if (applicants$gpa_collected[i] == TRUE) {
+    gpa <- applicants$gpa[i]
 } else {
-    gpa <- "Not Available"
+    gpa <- "No GPA"
 }
 
-grad.date <- applicants$pharmacy_school_graduation_date[i]
+grad.date <- applicants$graduation_date[i]
     
 if (!exists("interests")) {
     interests <- readRDS("interests.Rds")
@@ -34,16 +34,21 @@ if (!exists("lor")) {
     lor <- readRDS("lor.Rds")
 }
 
-time.mgmt <- lor[lor$cas_id == app.id & lor$quality == "time_management", "comment"]
-prob.solve <- lor[lor$cas_id == app.id & lor$quality == "clinical_problem_solving_skills", "comment"]
-independ <- lor[lor$cas_id == app.id & lor$quality == "independence", "comment"]
-mature <- lor[lor$cas_id == app.id & lor$quality == "emotional_maturity", "comment"]
+recs <- lor[lor$cas_id == app.id, ]
+# time.mgmt <- lor[lor$cas_id == app.id & lor$quality == "time_management", "comment"]
+# prob.solve <- lor[lor$cas_id == app.id & lor$quality == "clinical_problem_solving_skills", "comment"]
+# independ <- lor[lor$cas_id == app.id & lor$quality == "independence", "comment"]
+# mature <- lor[lor$cas_id == app.id & lor$quality == "emotional_maturity", "comment"]
 
 if (!exists("intent")) {
     intent <- readRDS("intent.Rds")
 }
-
 loi <- intent[intent$cas_id == app.id, ]
+
+if (!exists("cv")) {
+    cv <- readRDS("cv.Rds")
+}
+cv.data <- cv[cv$cas_id == app.id, ]
 ```
 
 ## `r app.name` - `r school` 
@@ -54,7 +59,7 @@ Interests: `r app.interest`
 
 ### Letter of Intent
 ```{r echo=FALSE}
-pander(as.list(loi$response))
+# pander(as.list(loi$response))
 ```
 
 
@@ -62,20 +67,20 @@ pander(as.list(loi$response))
 
 #### Time Management 
 ```{r echo=FALSE}
-pander(as.list(time.mgmt))
+# pander(as.list(time.mgmt))
 ```
 
 #### Problem Solving
 ```{r echo=FALSE}
-pander(as.list(prob.solve))
+# pander(as.list(prob.solve))
 ```
 
 #### Independence
 ```{r echo=FALSE}
-pander(as.list(independ))
+# pander(as.list(independ))
 ```
 
 #### Maturity
 ```{r echo=FALSE}
-pander(as.list(mature))
+# pander(as.list(mature))
 ```
