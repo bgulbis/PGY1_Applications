@@ -107,13 +107,33 @@ saveRDS(lor, "lor.Rds")
 # gather the letter of intent information into long data format
 intent <- data.extract %>%
     filter(designation_program_lookup_id == program.id) %>%
-    select(cas_id, matches("assignments_")) %>%
-    gather(question, response, starts_with("assignments_"), na.rm = TRUE) %>%
+    select(cas_id, contains("comments")) %>%
+    mutate_each(funs(as.character(.)), contains("comments")) %>%
+    gather(question, response, contains("comments"), na.rm = TRUE) %>%
     mutate(response = str_trim(str_replace_all(response, "\\n", " "), side = "both"),
            question = str_replace(question, "(.*)why_do_you_want(.*)", "motivation"),
            question = str_replace(question, "(.*)what_are_you_expecting(.*)", "expectations"),
            question = str_replace(question, "(.*)what_are_your_goals(.*)", "goals"),
-           question = str_replace(question, "(.*)what_can_you_bring(.*)", "contributions")) %>%
-    mutate(question = factor(question))
+           question = str_replace(question, "(.*)what_can_you_bring(.*)", "contributions"),
+           question = str_replace(question, "(.*)other_statements(.*)", "other_letter"),
+           question = str_replace(question, "(.*)other_findings_in_cv(.*)", "other_cv"),
+           question = str_replace(question, "(.*)extraction_comments(.*)", "reviewer_comments")) %>%
+    mutate(question = factor(question)) %>%
+    spread(question, response)
 
 saveRDS(intent, "intent.Rds")
+
+# data extracted from CV
+cv <- data.extract %>%
+    filter(designation_program_lookup_id == program.id) %>%
+    select(cas_id, contains("score")) %>%
+    rename(research = assignments_data_extraction_question_number_of_research_projects_score,
+           academic.rotations = assignments_data_extraction_question_number_of_rotations_at_academic_centers_score,
+           acute.care.rotations = assignments_data_extraction_question_number_of_acute_care_rotations_score,
+           rotations = assignments_data_extraction_question_total_number_of_rotations_score,
+           publications = assignments_data_extraction_question_number_of_peer.reviewed_publications_score,
+           presentations = assignments_data_extraction_question_number_of_platform_presentations_score,
+           posters = assignments_data_extraction_question_number_of_state_national_poster_presentations_score,
+           leadership = assignments_data_extraction_question_number_of_leadership_positions_score)
+
+saveRDS(cv, "cv.Rds")
