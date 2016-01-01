@@ -17,7 +17,7 @@ program.id <- 1634
 
 # get raw data for letters and references
 data.ref <- data$API_References
-data.intent <- data$API_Extraction
+data.extract <- data$API_Extraction
 data.applicant <- data$API_Applicants
 
 interest.areas <- c("Not Specified", "Ambulatory Care", "Cardiology", "Critical Care", 
@@ -27,12 +27,25 @@ interest.areas <- c("Not Specified", "Ambulatory Care", "Cardiology", "Critical 
 # tidy applicant data
 applicants <- data.applicant %>%
     filter(designation_program_lookup_id == program.id) %>%
-    select(-starts_with("custom_field_interest")) %>%
-    mutate(pharmacy_school_gpa_collected = ifelse(pharmacy_school_gpa_collected == "Y", TRUE, FALSE),
-           custom_field_mh.tmc_rec = ifelse(custom_field_school_score == "Y", TRUE, FALSE),
-           pharmacy_school_graduation_date = ymd(pharmacy_school_graduation_date),
+    select(-starts_with("custom_field_interest"), -starts_with("pharmacy_school")) %>%
+    mutate(custom_field_mh.tmc_rec = ifelse(custom_field_school_score == "Y", TRUE, FALSE),
            decision_code = factor(decision_code, exclude = ""),
            citizenship_status = factor(citizenship_status, exclude = ""))
+
+schools <- data.applicant %>%
+    filter(designation_program_lookup_id == program.id) %>%
+    select(cas_id, starts_with("pharmacy_school")) %>%
+    mutate_each(funs(ifelse(. == "Y", TRUE, FALSE)), contains("gpa_collected")) %>%
+    mutate_each(funs(ymd(.)), contains("graduation_date")) %>%
+    mutate(two.schools = ifelse(pharmacy_school_graduation_date_0 == pharmacy_school_graduation_date_1 | 
+                                    is.na(pharmacy_school_graduation_date_1), FALSE, TRUE)) %>%
+    rename(school = pharmacy_school_name_0,
+           gpa = pharmacy_school_gpa_0,
+           gpa_collected = pharmacy_school_gpa_collected_0,
+           graduation_date = pharmacy_school_graduation_date_0) %>%
+    select(cas_id, school, gpa, gpa_collected, graduation_date, two.schools)
+
+applicants <- left_join(applicants, schools, by = "cas_id")
 
 saveRDS(applicants, "applicants.Rds")
 
@@ -92,7 +105,7 @@ lor <- full_join(rating, comments, by=c("cas_id", "quality", "ref_num")) %>%
 saveRDS(lor, "lor.Rds")
 
 # gather the letter of intent information into long data format
-intent <- data.intent %>%
+intent <- data.extract %>%
     filter(designation_program_lookup_id == program.id) %>%
     select(cas_id, matches("assignments_")) %>%
     gather(question, response, starts_with("assignments_"), na.rm = TRUE) %>%
