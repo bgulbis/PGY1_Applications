@@ -128,18 +128,20 @@ saveRDS(intent, "intent.Rds")
 # data extracted from CV
 cv <- data.extract %>%
     filter(designation_program_lookup_id == program.id) %>%
-    select(cas_id, contains("score")) %>%
-    rename(research = assignments_data_extraction_question_number_of_research_projects_score,
-           academic.rotations = assignments_data_extraction_question_number_of_rotations_at_academic_centers_score,
-           acute.care.rotations = assignments_data_extraction_question_number_of_acute_care_rotations_score,
-           rotations = assignments_data_extraction_question_total_number_of_rotations_score,
-           publications = assignments_data_extraction_question_number_of_peer.reviewed_publications_score,
-           presentations = assignments_data_extraction_question_number_of_platform_presentations_score,
-           posters = assignments_data_extraction_question_number_of_state_national_poster_presentations_score,
-           leadership = assignments_data_extraction_question_number_of_leadership_positions_score)
+    select(cas_id, contains("score")) 
+
+names(cv) <- str_replace_all(names(cv), "assignments_data_extraction_question_number_of_", "")
+names(cv) <- str_replace_all(names(cv), "_score", "")
 
 saveRDS(cv, "cv.Rds")
 
 # application scores
+app.scores <- data.scores %>%
+    filter(designation_program_lookup_id == program.id) %>%
+    mutate_each(funs(str_trim(str_replace_all(., "\\n", " "), side = "both")), contains("comments")) 
+
+names(app.scores) <- str_replace_all(names(app.scores), "assignments_application_scoring_question_", "")
+names(app.scores) <- str_replace_all(names(app.scores), "_(.?[0-9])_to_[0-9]", "")
+names(app.scores) <- str_replace_all(names(app.scores), "assignment(s)?_application_scoring", "application")
 
 # vidyo interviews
