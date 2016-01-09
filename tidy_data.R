@@ -144,6 +144,10 @@ names(app.scores) <- str_replace_all(names(app.scores), "assignments_application
 names(app.scores) <- str_replace_all(names(app.scores), "_(.?[0-9])_to_[0-9]", "")
 names(app.scores) <- str_replace_all(names(app.scores), "assignment(s)?_application_scoring", "application")
 
+app.scores <- app.scores %>%
+    mutate(application_reviewer = factor(application_reviewer),
+           application_remark = as.numeric(str_extract(application_remark, "[0-9]")))
+
 saveRDS(app.scores, "app.scores.Rds")
 
 # vidyo interviews
@@ -152,5 +156,9 @@ vidyo <- data.vidyo %>%
     mutate_each(funs(str_trim(str_replace_all(., "\\n", " "), side = "both")), contains("comments"))
 
 names(vidyo) <- str_replace_all(names(vidyo), "interview(s)?_vidyo_interview_(question_)?", "")
+
+vidyo <- vidyo %>%
+    mutate(interviewer = factor(interviewer),
+           remarks = as.numeric(str_extract(remarks, "[0-9]")))
 
 saveRDS(vidyo, "vidyo.Rds")
