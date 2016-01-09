@@ -34,6 +34,8 @@ applicants <- data.applicant %>%
            decision_code = factor(decision_code, exclude = ""),
            citizenship_status = factor(citizenship_status, exclude = ""))
 
+names(applicants) <- str_replace_all(names(applicants), "custom_field_", "")
+
 schools <- data.applicant %>%
     filter(designation_program_lookup_id == program.id) %>%
     select(cas_id, starts_with("pharmacy_school")) %>%
@@ -132,6 +134,10 @@ cv <- data.extract %>%
 
 names(cv) <- str_replace_all(names(cv), "assignments_data_extraction_question_number_of_", "")
 names(cv) <- str_replace_all(names(cv), "_score", "")
+names(cv) <- str_replace_all(names(cv), "rotations_(.*)_centers", "academic_rotations")
+names(cv) <- str_replace_all(names(cv), "assignments_(.*)_rotations", "num_rotations")
+names(cv) <- str_replace_all(names(cv), "peer(.*)_publications", "publications")
+names(cv) <- str_replace_all(names(cv), "state_national_", "")
 
 saveRDS(cv, "cv.Rds")
 
@@ -143,6 +149,18 @@ app.scores <- data.scores %>%
 names(app.scores) <- str_replace_all(names(app.scores), "assignments_application_scoring_question_", "")
 names(app.scores) <- str_replace_all(names(app.scores), "_(.?[0-9])_to_[0-9]", "")
 names(app.scores) <- str_replace_all(names(app.scores), "assignment(s)?_application_scoring", "application")
+names(app.scores) <- str_replace_all(names(app.scores), "contributions_(.*)_patients", "contributions")
+names(app.scores) <- str_replace_all(names(app.scores), "expecting_(.*)_residency", "expectations")
+names(app.scores) <- str_replace_all(names(app.scores), "motivation_(.*)_residency", "motivation")
+names(app.scores) <- str_replace_all(names(app.scores), "followed_(.*)_instructions", "instructions")
+names(app.scores) <- str_replace_all(names(app.scores), "any_spelling_(.*)_application", "spelling")
+names(app.scores) <- str_replace_all(names(app.scores), "other_(.*)_awarded", "other")
+names(app.scores) <- str_replace_all(names(app.scores), "recommender_(.*)_us", "known_recommender")
+names(app.scores) <- str_replace_all(names(app.scores), "review_(.*)_recommendations", "recs")
+names(app.scores) <- str_replace_all(names(app.scores), "clinical_(.*)_competition", "clin_skills")
+names(app.scores) <- str_replace_all(names(app.scores), "lcep(.*)_program", "lcep")
+names(app.scores) <- str_replace_all(names(app.scores), "leadership_experience", "leadership")
+names(app.scores) <- str_replace_all(names(app.scores), "long(.*)_goals", "goals")
 
 app.scores <- app.scores %>%
     mutate(application_reviewer = factor(application_reviewer),
@@ -156,6 +174,10 @@ vidyo <- data.vidyo %>%
     mutate_each(funs(str_trim(str_replace_all(., "\\n", " "), side = "both")), contains("comments"))
 
 names(vidyo) <- str_replace_all(names(vidyo), "interview(s)?_vidyo_interview_(question_)?", "")
+names(vidyo) <- str_replace_all(names(vidyo), "critical_(.*)_task", "crit_think")
+names(vidyo) <- str_replace_all(names(vidyo), "time_(.*)_assignments", "time_mgmt")
+names(vidyo) <- str_replace_all(names(vidyo), "self(.*)_obstacle", "prob_solve")
+names(vidyo) <- str_replace_all(names(vidyo), "integrity_(.*)_harmed", "integrity")
 
 vidyo <- vidyo %>%
     mutate(interviewer = factor(interviewer),
