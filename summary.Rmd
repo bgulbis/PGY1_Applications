@@ -1,6 +1,7 @@
 ---
 output: 
   pdf_document
+geometry: margin=0.5in
 ---
 
 ```{r echo=FALSE}
@@ -49,6 +50,16 @@ if (!exists("cv")) {
     cv <- readRDS("cv.Rds")
 }
 cv.data <- cv[cv$cas_id == app.id, ]
+
+if (!exists("app.scores")) {
+    app.scores <- readRDS("app.scores.Rds")
+}
+score <- app.scores[app.scores$cas_id == app.id, ]
+
+if (!exists("vidyo")) {
+    vidyo <- readRDS("vidyo.Rds")
+}
+video <- vidyo[vidyo$cas_id == app.id, ]
 ```
 
 ## `r app.name` - `r school` 
@@ -59,8 +70,15 @@ Interests: `r app.interest`
 
 ### Letter of Intent
 ```{r echo=FALSE}
-# pander(as.list(loi$response))
+loi.attrib <- c("Motivation for residency", "Expectating to get from residency", "Contributions to hospital", "Career goals", "Other statements")
+loi.score <- c(score$motivation_score, score$expectations_score, score$contributions_score, score$goals_score, NA)
+loi.comment <- c(loi$motivation, loi$expectations, loi$contributions, loi$goals, loi$other_letter)
+
+loi.table <- data.frame(Attribute = loi.attrib, Score = loi.score, Statement = loi.comment)
+pander(loi.table)
 ```
+
+### CV
 
 
 ### References
