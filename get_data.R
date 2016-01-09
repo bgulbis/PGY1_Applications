@@ -37,8 +37,10 @@ exportid <- GET(exportid.url, add_headers("x-api-key" = mykey))
 exportid.json <- content(exportid)
 exportid.json <- fromJSON(toJSON(exportid.json))
 
+export.names <- c("API_Applicants", "API_Extraction", "API_References", "API_Application_Scores", "API_Vidyo")
+
 exportids <- exportid.json$exports %>%
-    filter(name == "API_References" | name == "API_Extraction" | name == "API_Applicants")
+    filter(name %in% export.names)
     
 get_data <- function(export.id) {
     # select the export_id for the desired export (saved in Export Manager)

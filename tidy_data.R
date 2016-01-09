@@ -19,9 +19,11 @@ program.id <- 1634
 data.ref <- data$API_References
 data.extract <- data$API_Extraction
 data.applicant <- data$API_Applicants
+data.vidyo <- data$API_Vidyo
+data.scores <- data$API_Application_Scores
 
 interest.areas <- c("Not Specified", "Ambulatory Care", "Cardiology", "Critical Care", 
-               "Emergency Medicine", "Infectious Diseases", "Internal Medicine", 
+               "Emergency Medicine", "Infectious Diseases", "Informatics", "Internal Medicine", 
                "Management", "Oncology", "Pediatrics", "Psychiatry", "Transplant", "Other")
 
 # tidy applicant data
@@ -137,3 +139,7 @@ cv <- data.extract %>%
            leadership = assignments_data_extraction_question_number_of_leadership_positions_score)
 
 saveRDS(cv, "cv.Rds")
+
+# application scores
+
+# vidyo interviews
