@@ -138,10 +138,15 @@ saveRDS(cv, "cv.Rds")
 # application scores
 app.scores <- data.scores %>%
     filter(designation_program_lookup_id == program.id) %>%
-    mutate_each(funs(str_trim(str_replace_all(., "\\n", " "), side = "both")), contains("comments")) 
+    mutate_each(funs(str_trim(str_replace_all(., "\\n", " "), side = "both")), contains("comments"))
 
 names(app.scores) <- str_replace_all(names(app.scores), "assignments_application_scoring_question_", "")
 names(app.scores) <- str_replace_all(names(app.scores), "_(.?[0-9])_to_[0-9]", "")
 names(app.scores) <- str_replace_all(names(app.scores), "assignment(s)?_application_scoring", "application")
 
 # vidyo interviews
+vidyo <- data.vidyo %>%
+    filter(designation_program_lookup_id == program.id) %>%
+    mutate_each(funs(str_trim(str_replace_all(., "\\n", " "), side = "both")), contains("comments"))
+
+names(vidyo) <- str_replace_all(names(vidyo), "interview(s)?_vidyo_interview_(question_)?", "")
