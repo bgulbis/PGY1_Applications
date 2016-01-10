@@ -4,8 +4,12 @@ output:
 geometry: margin=0.5in
 ---
 
-```{r echo=FALSE}
+```{r echo=FALSE, results='asis'}
+library(dplyr)
 library(pander)
+panderOptions('knitr.auto.asis', TRUE)
+panderOptions('table.alignment.default', 'left')
+panderOptions('table.split.table', 140)
 ```
 
 ```{r echo=FALSE, warning=FALSE}
@@ -14,33 +18,24 @@ if (!exists("applicants")) {
 }
 
 app.id <- applicants$cas_id[i]
-app.name <- paste(applicants$last_name[i], applicants$first_name[i], sep = ", ")
-school <- applicants$school[i]
 
-if (applicants$gpa_collected[i] == TRUE) {
-    gpa <- applicants$gpa[i]
+candidate <- applicants[applicants$cas_id == app.id, ]
+app.name <- paste(candidate$last_name, candidate$first_name, sep = ", ")
+
+if (candidate$gpa_collected == TRUE) {
+    gpa <- candidate$gpa
 } else {
     gpa <- "No GPA"
 }
 
-grad.date <- applicants$graduation_date[i]
+grad.date <- as.character(candidate$graduation_date)
     
 if (!exists("interests")) {
     interests <- readRDS("interests.Rds")
 }
 
-app.interest <- interests[interests$cas_id == app.id, "interest"]
+app.interest <- c(as.character(interests[interests$cas_id == app.id, "interest"]), "")
     
-if (!exists("lor")) {
-    lor <- readRDS("lor.Rds")
-}
-
-recs <- lor[lor$cas_id == app.id, ]
-# time.mgmt <- lor[lor$cas_id == app.id & lor$quality == "time_management", "comment"]
-# prob.solve <- lor[lor$cas_id == app.id & lor$quality == "clinical_problem_solving_skills", "comment"]
-# independ <- lor[lor$cas_id == app.id & lor$quality == "independence", "comment"]
-# mature <- lor[lor$cas_id == app.id & lor$quality == "emotional_maturity", "comment"]
-
 if (!exists("intent")) {
     intent <- readRDS("intent.Rds")
 }
@@ -56,49 +51,101 @@ if (!exists("app.scores")) {
 }
 score <- app.scores[app.scores$cas_id == app.id, ]
 
+letter.score <- score$goals_score + score$contributions_score + score$expectations_score + score$motivation_score
+letter.hdr <- paste(letter.score, "/6 (", round((letter.score / 6) * 100, 0), "%)", sep = "")
+
+resume.score <- score$clin_skills_score + score$lcep_score + score$rotations_score + score$work_experience_score + score$publications_score + score$presentations_score + score$leadership_score
+resume.hdr <- paste(resume.score, "/19 (", round((resume.score / 19) * 100, 0), "%)", sep = "")
+
+reference.score <- score$recs_score + score$known_recommender_score
+reference.hdr <- paste(reference.score, "/11 (", round((reference.score / 11) * 100, 0), "%)", sep = "")
+
+other.hdr <- paste(score$other_score, "/6 (", round((score$other_score / 6) * 100, 0), "%)", sep = "")
+
+if (!exists("lor")) {
+    lor <- readRDS("lor.Rds")
+}
+
+recs <- lor[lor$cas_id == app.id, ]
+
 if (!exists("vidyo")) {
     vidyo <- readRDS("vidyo.Rds")
 }
 video <- vidyo[vidyo$cas_id == app.id, ]
+
+video.hdr <- paste(video$score, "/28 (", round((video$score / 28) * 100, 0), "%)", sep = "")
 ```
 
-## `r app.name` - `r school` 
+## `r app.name` - `r candidate$school` 
 
-GPA: `r gpa`; Graduation Date: `r grad.date`
+```{r scores, echo=FALSE, results='asis'}
+application <- c("Letter of Intent", "Curriculum Vitae", "Letters of Reference", "Other Application")
+interview <- c("Vidyo Score", "Reviewer Fit", "Interviewer Fit", "")
+school <- c("GPA", "Grad Date", "School Score", "")
 
-Interests: `r app.interest`
+application.col <- c(letter.hdr, resume.hdr, reference.hdr, other.hdr)
+interivew.col <- c(video.hdr, score$application_remark, video$remarks, NA)
+school.col <- c(gpa, grad.date, candidate$school_score, NA)
 
-### Letter of Intent
-```{r echo=FALSE}
-loi.attrib <- c("Motivation for residency", "Expectating to get from residency", "Contributions to hospital", "Career goals", "Other statements")
+score.summary <- data.frame(Application = application, Scores = application.col, Interview = interview, Assessment = interivew.col, School = school, Values = school.col, Interests = app.interest) 
+
+pandoc.table(score.summary, caption = "Summary of Scores")
+```
+
+```{r loi, echo=FALSE, results='asis'}
+loi.attrib <- c("Motivation for residency", "Expectating from residency", "Contributions to hospital", "Career goals", "Other statements")
+
 loi.score <- c(score$motivation_score, score$expectations_score, score$contributions_score, score$goals_score, NA)
+
 loi.comment <- c(loi$motivation, loi$expectations, loi$contributions, loi$goals, loi$other_letter)
 
 loi.table <- data.frame(Attribute = loi.attrib, Score = loi.score, Statement = loi.comment)
-pander(loi.table)
+
+pandoc.table(loi.table, caption = "Letter of Intent", split.cells = c("20%", "20%", "60%"))
 ```
 
-### CV
+```{r cv, echo=FALSE, results='asis'}
+cv.attrib <- c("Leadership", "Posters / Platform Presentations", "Research / Publications", "Work Experience", "Rotations / Acute Care / Academic", "Longitudinal APPE Program", "Clinical Skills Winner")
 
+cv.num <- c(cv.data$leadership_positions, paste(cv.data$poster_presentations, cv.data$platform_presentations, sep = " / "), paste(cv.data$research_projects, cv.data$publications, sep = " / "), NA, paste(cv.data$num_rotations, cv.data$acute_care_rotations, cv.data$academic_rotations, sep = " / "), NA, NA)
+    
+cv.score <- c(score$leadership_score, score$presentations_score, score$publications_score, score$work_experience_score, score$rotations_score, score$lcep_score, score$clin_skills_score)
 
-### References
+cv.comment <- c(score$leadership_comments, score$presentations_comments, score$publications_comments, score$work_experience_comments, score$rotations_comments, score$lcep_comments, score$clin_skills_comments)
 
-#### Time Management 
-```{r echo=FALSE}
-# pander(as.list(time.mgmt))
+cv.table <- data.frame(Attribute = cv.attrib, Numbers = cv.num, Score = cv.score, Comments = cv.comment)
+
+pandoc.table(cv.table, caption = "Curriculum Vitae")
 ```
 
-#### Problem Solving
-```{r echo=FALSE}
-# pander(as.list(prob.solve))
+```{r recs, echo=FALSE, results='asis'}
+recs.table <- recs %>%
+    select(-cas_id, -ref_num) %>%
+    filter((quality %in% c("Problem Solving", "Time Management", "Maturity", "Independence") | rating == "Fails to Meet" | str_detect(comment, regex("(need|room|could|area)(s|ing)?( +[^ ]+){0,5} improv(e|ement|ing)?", ignore_case = TRUE)) == TRUE | str_detect(comment, regex("(struggle|difficult|deficien)", ignore_case = TRUE)) == TRUE) & comment != "")
+
+names(recs.table) <- c("Quality", "Rating", "Comment")
+
+need.improve <- str_detect(recs.table$Comment, regex("(need|room|could|area)(s|ing)?( +[^ ]+){0,5} improv(e|ement|ing)?", ignore_case = TRUE))
+
+struggle <- str_detect(recs.table$Comment, regex("(struggle|difficult|deficien)", ignore_case = TRUE))
+
+bold.rows <- c(which(recs.table$Rating == "Fails to Meet"), which(need.improve == TRUE), which(struggle == TRUE))
+
+if (length(bold.rows) > 0) {
+   emphasize.strong.rows(bold.rows)
+}
+
+pandoc.table(recs.table, syle = "multiline", caption = "Letters of Recommendation", split.cells = c("20%", "20%", "60%"))
 ```
 
-#### Independence
-```{r echo=FALSE}
-# pander(as.list(independ))
-```
+```{r vidyo, echo=FALSE, results='asis'}
+vidyo.attrib <- c("Critical Thinking", "Time Management", "Problem Solving", "Integrity")
 
-#### Maturity
-```{r echo=FALSE}
-# pander(as.list(mature))
+vidyo.score <- c(video$crit_think_score, video$time_mgmt_score, video$prob_solve_score, video$integrity_score)
+
+vidyo.comment <- c(video$crit_think_comments, video$time_mgmt_comments, video$prob_solve_comments, video$integrity_comments)
+
+vidyo.table <- data.frame(Attribute = vidyo.attrib, Score = vidyo.score, Comment = vidyo.comment)
+
+pandoc.table(vidyo.table, syle = "multiline", caption = "Vidyo Interviews", split.cells = c("20%", "20%", "60%"))
 ```

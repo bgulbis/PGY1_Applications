@@ -18,7 +18,7 @@ if (!exists("applicants")) {
 # }
 
 # test
-i <- 1
+i <- 97
 rmarkdown::render(input = "summary.Rmd", output_format = "pdf_document", 
-                  output_file = paste(applicants$last_name[1], "_", applicants$first_name[1], ".pdf", sep = ""),
+                  output_file = paste(applicants$last_name[i], "_", applicants$first_name[i], ".pdf", sep = ""),
                   output_dir = "summaries")

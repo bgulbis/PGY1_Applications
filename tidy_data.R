@@ -104,6 +104,9 @@ lor <- full_join(rating, comments, by=c("cas_id", "quality", "ref_num")) %>%
     mutate(quality = factor(quality)) %>%
     arrange(cas_id, quality, ref_num)
 
+levels(lor$quality) <- c("Assertive", "Problem Solving", "Criticism", "Dependable", "Maturity", "Independence", 
+                         "Leadership", "Oral Comm", "Patient Interact", "Peer Comm", "Professional", 
+                         "Time Managemetn", "Written Comm")
 # rm(rating, comments)
 
 saveRDS(lor, "lor.Rds")
