@@ -30,7 +30,7 @@ interest.areas <- c("Not Specified", "Ambulatory Care", "Cardiology", "Critical 
 applicants <- data.applicant %>%
     filter(designation_program_lookup_id == program.id) %>%
     select(-starts_with("custom_field_interest"), -starts_with("pharmacy_school")) %>%
-    mutate(custom_field_mh.tmc_rec = ifelse(custom_field_school_score == "Y", TRUE, FALSE),
+    mutate(custom_field_mh.tmc_rec = ifelse(custom_field_mh.tmc_rec == "Y", TRUE, FALSE),
            decision_code = factor(decision_code, exclude = ""),
            citizenship_status = factor(citizenship_status, exclude = ""))
 

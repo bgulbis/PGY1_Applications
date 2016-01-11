@@ -18,7 +18,7 @@ for (i in 1:nrow(applicants)) {
 }
 
 # test
-# i <- 2
+# i <- 24
 # rmarkdown::render(input = "summary.Rmd", output_format = "pdf_document", 
 #                   output_file = paste(applicants$last_name[i], "_", applicants$first_name[i], ".pdf", sep = ""),
 #                   output_dir = "summaries")

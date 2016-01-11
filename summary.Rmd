@@ -89,7 +89,7 @@ video.hdr <- paste(video$score, " (", round((video$score / 28) * 100, 0), "%)", 
 ```{r scores, echo=FALSE, results='asis'}
 application <- c("Letter of Intent", "Curriculum Vitae", "Letters of Reference", "Other Application")
 interview <- c("Vidyo Score", "Total Score", "Reviewer Fit", "Interviewer Fit")
-school <- c("GPA", "Grad Date", "School Score", "")
+school <- c("GPA", "Grad Date", "School Score", "Known Rec")
 
 # out of 70
 total.score <- letter.score + resume.score + reference.score + score$other_score + video$score + candidate$school_score
@@ -98,7 +98,7 @@ total.hdr <- paste(total.score, " (", round((total.score / 70) * 100, 0), "%)", 
 
 application.col <- c(letter.hdr, resume.hdr, reference.hdr, other.hdr)
 interivew.col <- c(video.hdr, total.hdr, score$application_remark, video$remarks)
-school.col <- c(gpa, grad.date, candidate$school_score, "")
+school.col <- c(gpa, grad.date, candidate$school_score, candidate$mh.tmc_rec)
 
 score.summary <- data.frame(Application = application, Scores = application.col, Interview = interview, Assessment = interivew.col, School = school, Values = school.col, Interests = app.interest) 
 
