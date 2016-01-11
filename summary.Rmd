@@ -6,6 +6,8 @@ geometry: margin=0.5in
 
 ```{r echo=FALSE, results='asis'}
 library(dplyr)
+library(tidyr)
+library(stringr)
 library(pander)
 panderOptions('knitr.auto.asis', TRUE)
 panderOptions('table.alignment.default', 'left')
@@ -52,15 +54,15 @@ if (!exists("app.scores")) {
 score <- app.scores[app.scores$cas_id == app.id, ]
 
 letter.score <- score$goals_score + score$contributions_score + score$expectations_score + score$motivation_score
-letter.hdr <- paste(letter.score, "/6 (", round((letter.score / 6) * 100, 0), "%)", sep = "")
+letter.hdr <- paste(letter.score, " (", round((letter.score / 6) * 100, 0), "%)", sep = "")
 
 resume.score <- score$clin_skills_score + score$lcep_score + score$rotations_score + score$work_experience_score + score$publications_score + score$presentations_score + score$leadership_score
-resume.hdr <- paste(resume.score, "/19 (", round((resume.score / 19) * 100, 0), "%)", sep = "")
+resume.hdr <- paste(resume.score, " (", round((resume.score / 19) * 100, 0), "%)", sep = "")
 
 reference.score <- score$recs_score + score$known_recommender_score
-reference.hdr <- paste(reference.score, "/11 (", round((reference.score / 11) * 100, 0), "%)", sep = "")
+reference.hdr <- paste(reference.score, " (", round((reference.score / 11) * 100, 0), "%)", sep = "")
 
-other.hdr <- paste(score$other_score, "/6 (", round((score$other_score / 6) * 100, 0), "%)", sep = "")
+other.hdr <- paste(score$other_score, " (", round((score$other_score / 6) * 100, 0), "%)", sep = "")
 
 if (!exists("lor")) {
     lor <- readRDS("lor.Rds")
@@ -68,27 +70,41 @@ if (!exists("lor")) {
 
 recs <- lor[lor$cas_id == app.id, ]
 
+if (!exists("ref.assess")) {
+    ref.assess <- readRDS("ref.assess.Rds")
+}
+
+str.wk <- ref.assess[ref.assess$cas_id == app.id, ]
+
 if (!exists("vidyo")) {
     vidyo <- readRDS("vidyo.Rds")
 }
 video <- vidyo[vidyo$cas_id == app.id, ]
 
-video.hdr <- paste(video$score, "/28 (", round((video$score / 28) * 100, 0), "%)", sep = "")
+video.hdr <- paste(video$score, " (", round((video$score / 28) * 100, 0), "%)", sep = "")
 ```
 
 ## `r app.name` - `r candidate$school` 
 
 ```{r scores, echo=FALSE, results='asis'}
 application <- c("Letter of Intent", "Curriculum Vitae", "Letters of Reference", "Other Application")
-interview <- c("Vidyo Score", "Reviewer Fit", "Interviewer Fit", "")
+interview <- c("Vidyo Score", "Total Score", "Reviewer Fit", "Interviewer Fit")
 school <- c("GPA", "Grad Date", "School Score", "")
 
+# out of 70
+total.score <- letter.score + resume.score + reference.score + score$other_score + video$score + candidate$school_score
+
+total.hdr <- paste(total.score, " (", round((total.score / 70) * 100, 0), "%)", sep = "")
+
 application.col <- c(letter.hdr, resume.hdr, reference.hdr, other.hdr)
-interivew.col <- c(video.hdr, score$application_remark, video$remarks, NA)
-school.col <- c(gpa, grad.date, candidate$school_score, NA)
+interivew.col <- c(video.hdr, total.hdr, score$application_remark, video$remarks)
+school.col <- c(gpa, grad.date, candidate$school_score, "")
 
 score.summary <- data.frame(Application = application, Scores = application.col, Interview = interview, Assessment = interivew.col, School = school, Values = school.col, Interests = app.interest) 
 
+tmp <- which(score.summary == "Total Score", arr.ind = TRUE)
+tmp <- rbind(tmp, tmp + c(0,1))
+emphasize.strong.cells(tmp)
 pandoc.table(score.summary, caption = "Summary of Scores")
 ```
 
@@ -107,7 +123,7 @@ pandoc.table(loi.table, caption = "Letter of Intent", split.cells = c("20%", "20
 ```{r cv, echo=FALSE, results='asis'}
 cv.attrib <- c("Leadership", "Posters / Platform Presentations", "Research / Publications", "Work Experience", "Rotations / Acute Care / Academic", "Longitudinal APPE Program", "Clinical Skills Winner")
 
-cv.num <- c(cv.data$leadership_positions, paste(cv.data$poster_presentations, cv.data$platform_presentations, sep = " / "), paste(cv.data$research_projects, cv.data$publications, sep = " / "), NA, paste(cv.data$num_rotations, cv.data$acute_care_rotations, cv.data$academic_rotations, sep = " / "), NA, NA)
+cv.num <- c(cv.data$leadership_positions, paste(cv.data$poster_presentations, cv.data$platform_presentations, sep = " / "), paste(cv.data$research_projects, cv.data$publications, sep = " / "), "", paste(cv.data$num_rotations, cv.data$acute_care_rotations, cv.data$academic_rotations, sep = " / "), "", "")
     
 cv.score <- c(score$leadership_score, score$presentations_score, score$publications_score, score$work_experience_score, score$rotations_score, score$lcep_score, score$clin_skills_score)
 
@@ -135,8 +151,23 @@ if (length(bold.rows) > 0) {
    emphasize.strong.rows(bold.rows)
 }
 
-pandoc.table(recs.table, syle = "multiline", caption = "Letters of Recommendation", split.cells = c("20%", "20%", "60%"))
+pandoc.table(recs.table, caption = "Letters of Recommendation", split.cells = c("20%", "20%", "60%"))
 ```
+
+__Strengths__
+```{r strengths, echo=FALSE, results='asis'}
+strwk.table <- str.wk %>%
+    spread(quality, comment) %>%
+    select(Strengths, Weaknesses)
+
+pander(as.list(strwk.table$Strengths))
+```
+
+__Weaknesses__
+```{r weakness, echo=FALSE, results='asis'}
+pander(as.list(strwk.table$Weaknesses))
+```
+
 
 ```{r vidyo, echo=FALSE, results='asis'}
 vidyo.attrib <- c("Critical Thinking", "Time Management", "Problem Solving", "Integrity")
@@ -147,5 +178,14 @@ vidyo.comment <- c(video$crit_think_comments, video$time_mgmt_comments, video$pr
 
 vidyo.table <- data.frame(Attribute = vidyo.attrib, Score = vidyo.score, Comment = vidyo.comment)
 
-pandoc.table(vidyo.table, syle = "multiline", caption = "Vidyo Interviews", split.cells = c("20%", "20%", "60%"))
+pandoc.table(vidyo.table, caption = "Vidyo Interviews", split.cells = c("20%", "20%", "60%"))
 ```
+
+```{r other, echo=FALSE, results='asis'}
+
+```
+
+
+Application (`r score$application_reviewer`): `r score$application_comments`
+
+Vidyo (`r video$interviewer`): `r video$comments`

@@ -11,14 +11,14 @@ if (!exists("applicants")) {
     applicants <- readRDS("applicants.Rds")
 }
 
-# for (i in 1:nrow(applicants)) {
-#     rmarkdown::render(input = "summary.Rmd", output_format = "pdf_document", 
-#                       output_file = paste(applicants$last_name[i], "_", applicants$first_name[i], ".pdf", sep = ""),
-#                       output_dir = "summaries")
-# }
+for (i in 1:nrow(applicants)) {
+    rmarkdown::render(input = "summary.Rmd", output_format = "pdf_document", 
+                      output_file = paste(applicants$last_name[i], "_", applicants$first_name[i], ".pdf", sep = ""),
+                      output_dir = "summaries")
+}
 
 # test
-i <- 97
-rmarkdown::render(input = "summary.Rmd", output_format = "pdf_document", 
-                  output_file = paste(applicants$last_name[i], "_", applicants$first_name[i], ".pdf", sep = ""),
-                  output_dir = "summaries")
+# i <- 2
+# rmarkdown::render(input = "summary.Rmd", output_format = "pdf_document", 
+#                   output_file = paste(applicants$last_name[i], "_", applicants$first_name[i], ".pdf", sep = ""),
+#                   output_dir = "summaries")

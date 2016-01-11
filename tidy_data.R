@@ -107,9 +107,25 @@ lor <- full_join(rating, comments, by=c("cas_id", "quality", "ref_num")) %>%
 levels(lor$quality) <- c("Assertive", "Problem Solving", "Criticism", "Dependable", "Maturity", "Independence", 
                          "Leadership", "Oral Comm", "Patient Interact", "Peer Comm", "Professional", 
                          "Time Managemetn", "Written Comm")
-# rm(rating, comments)
-
 saveRDS(lor, "lor.Rds")
+
+# strengths / weaknesses
+
+ref.assess <- data.ref %>%
+    filter(designation_program_lookup_id == program.id) %>%
+    select(cas_id, contains("other_observances"), contains("description"), contains("reference_comments")) %>%
+    gather(ref_num, comment, starts_with("reference_"), na.rm = TRUE) %>%
+    extract(ref_num, c("quality", "ref_num"), "reference_(.*)_([0-3])$") %>%
+    mutate(ref_num = as.numeric(ref_num),
+           quality = factor(quality),
+           comment = str_trim(str_replace_all(comment, "\\n", " "), side = "both"),
+           comment = ifelse(comment == "", NA, comment)) %>%
+    inner_join(references, by=c("cas_id", "ref_num")) %>%
+    select(cas_id:comment)
+
+levels(ref.assess$quality) <- c("Comments", "Weaknesses", "Strengths")
+
+saveRDS(ref.assess, "ref.assess.Rds")
 
 # gather the letter of intent information into long data format
 intent <- data.extract %>%
