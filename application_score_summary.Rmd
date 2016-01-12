@@ -10,7 +10,31 @@ if (!exists("result.summary")) {
 }
 ```
 
-```{r}
-
+```{r echo=FALSE, results='asis', message=FALSE}
+library(pander)
+library(dplyr)
+library(FSA)
 ```
 
+## Overall Averages
+```{r echo=FALSE}
+overall.avg <- result.summary %>%
+    select(overall.score, school_score, gpa, application_score, application_remark, score, remarks)
+
+overall <- lapply(overall.avg, Summarize)
+pander(overall)
+```
+
+## Application Reviewer Averages
+```{r echo=FALSE}
+test <- select(result.summary, application_score, application_remark)
+reviewers <- lapply(test, tapply, result.summary$application_reviewer, Summarize)
+pander(reviewers)
+```
+
+## Vidyo Interviewer Averages
+```{r echo=FALSE}
+test <- select(result.summary, score, remarks)
+interviewers <- lapply(test, tapply, result.summary$interviewer, Summarize)
+pander(interviewers)
+```
