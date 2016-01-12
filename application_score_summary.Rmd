@@ -1,0 +1,16 @@
+---
+title: "Application Scoring Summary"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output: pdf_document
+---
+
+```{r echo=FALSE}
+if (!exists("score.summary")) {
+    score.summary <- readRDS("score.summary.Rds")
+}
+```
+
+```{r}
+
+```
+
