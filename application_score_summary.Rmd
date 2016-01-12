@@ -5,8 +5,8 @@ output: pdf_document
 ---
 
 ```{r echo=FALSE}
-if (!exists("score.summary")) {
-    score.summary <- readRDS("score.summary.Rds")
+if (!exists("result.summary")) {
+    result.summary <- readRDS("result.summary.Rds")
 }
 ```
 
