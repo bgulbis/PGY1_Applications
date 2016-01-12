@@ -229,7 +229,7 @@ vidyo <- vidyo %>%
 saveRDS(vidyo, "vidyo.Rds")
 
 # score summary
-score.summary <- select(applicants, cas_id:last_name, citizenship_status:two.schools) %>%
+result.summary <- select(applicants, cas_id:last_name, citizenship_status:two.schools) %>%
     inner_join(select(app.scores, cas_id, application_reviewer:spelling_score), by = "cas_id") %>%
     inner_join(cv, by = "cas_id") %>%
     inner_join(select(vidyo, cas_id, interviewer:score, crit_think_score:integrity_score), by = "cas_id") %>%
@@ -237,6 +237,6 @@ score.summary <- select(applicants, cas_id:last_name, citizenship_status:two.sch
     arrange(desc(overall.score)) %>%
     select(cas_id, last_name, first_name, overall.score, school, everything())
 
-write.csv(score.summary, "score_summary.csv", row.names = FALSE)
+write.csv(result.summary, "result.summary.csv", row.names = FALSE)
 
-saveRDS(score.summary, "score.summary.Rds")
+saveRDS(result.summary, "result.summary.Rds")
