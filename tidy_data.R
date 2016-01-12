@@ -233,9 +233,11 @@ result.summary <- select(applicants, cas_id:last_name, citizenship_status:two.sc
     inner_join(select(app.scores, cas_id, application_reviewer:spelling_score), by = "cas_id") %>%
     inner_join(cv, by = "cas_id") %>%
     inner_join(select(vidyo, cas_id, interviewer:score, crit_think_score:integrity_score), by = "cas_id") %>%
-    mutate(overall.score = school_score + application_score + score) %>%
+    mutate(overall.score = school_score + application_score + score,
+           low.fit = ifelse(application_remark < 3 | remarks < 3, TRUE, FALSE),
+           low.school = ifelse(school_score < 2, TRUE, FALSE)) %>%
     arrange(desc(overall.score)) %>%
-    select(cas_id, last_name, first_name, overall.score, school, everything())
+    select(cas_id, last_name, first_name, school, overall.score, low.fit, low.school, everything())
 
 write.csv(result.summary, "result.summary.csv", row.names = FALSE)
 
