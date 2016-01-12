@@ -36,7 +36,7 @@ if (!exists("interests")) {
     interests <- readRDS("interests.Rds")
 }
 
-app.interest <- c(as.character(interests[interests$cas_id == app.id, "interest"]), "")
+app.interest <- as.character(interests[interests$cas_id == app.id, "interest"])
     
 if (!exists("intent")) {
     intent <- readRDS("intent.Rds")
@@ -76,6 +76,20 @@ if (!exists("ref.assess")) {
 
 str.wk <- ref.assess[ref.assess$cas_id == app.id, ]
 
+if (!exists("references")) {
+    references <- readRDS("references.Rds")
+}
+
+writers <- references[references$cas_id == app.id, ]
+
+writers <- mutate(writers, ref_name = paste(ref_last_name, ref_first_name, sep = ", "))
+writers.hdr <- writers$ref_name
+if (length(writers.hdr) == 4) {
+    writers.hdr <- c(writers.hdr, "")
+} else {
+    writers.hdr <- c(writers.hdr, "", "")
+}
+
 if (!exists("vidyo")) {
     vidyo <- readRDS("vidyo.Rds")
 }
@@ -85,11 +99,12 @@ video.hdr <- paste(video$score, " (", round((video$score / 28) * 100, 0), "%)", 
 ```
 
 ## `r app.name` - `r candidate$school` 
+### Interests: `r app.interest`
 
 ```{r scores, echo=FALSE, results='asis'}
-application <- c("Letter of Intent", "Curriculum Vitae", "Letters of Reference", "Reviewer Fit")
-interview <- c("Application Score", "Vidyo Score", "Total Score", "Interviewer Fit")
-school <- c("GPA", "Grad Date", "School Score", "Known Rec")
+application <- c("Letter of Intent", "Curriculum Vitae", "Letters of Reference", "Reviewer Fit", "Reviewer")
+interview <- c("Application Score", "Vidyo Score", "Total Score", "Interviewer Fit", "Interviewer")
+school <- c("GPA", "Grad Date", "School Score", "Known Rec", "")
 
 app.score.hdr <- paste(score$application_score, " (", round((score$application_score / 42) * 100, 0), "%)", sep = "")
 # out of 70
@@ -97,11 +112,11 @@ total.score <- score$application_score + video$score + candidate$school_score
 
 total.hdr <- paste(total.score, " (", round((total.score / 70) * 100, 0), "%)", sep = "")
 
-application.col <- c(letter.hdr, resume.hdr, reference.hdr, score$application_remark)
-interivew.col <- c(app.score.hdr, video.hdr, total.hdr, video$remarks)
-school.col <- c(gpa, grad.date, candidate$school_score, candidate$mh.tmc_rec)
+application.col <- c(letter.hdr, resume.hdr, reference.hdr, score$application_remark, as.character(score$application_reviewer))
+interivew.col <- c(app.score.hdr, video.hdr, total.hdr, video$remarks, as.character(video$interviewer))
+school.col <- c(gpa, grad.date, candidate$school_score, candidate$mh.tmc_rec, "")
 
-score.summary <- data.frame(Application = application, Scores = application.col, Interview = interview, Assessment = interivew.col, School = school, Values = school.col, Interests = app.interest) 
+score.summary <- data.frame(Application = application, Scores = application.col, Interview = interview, Assessment = interivew.col, School = school, Values = school.col, References = writers.hdr) 
 
 tmp <- which(score.summary == "Total Score", arr.ind = TRUE)
 tmp <- rbind(tmp, tmp + c(0,1))
@@ -182,11 +197,6 @@ vidyo.table <- data.frame(Attribute = vidyo.attrib, Score = vidyo.score, Comment
 pandoc.table(vidyo.table, caption = "Vidyo Interviews", split.cells = c("20%", "20%", "60%"))
 ```
 
-```{r other, echo=FALSE, results='asis'}
+Application Comments: `r score$application_comments`
 
-```
-
-
-Application (`r score$application_reviewer`): `r score$application_comments`
-
-Vidyo (`r video$interviewer`): `r video$comments`
+Vidyo Comments: `r video$comments`

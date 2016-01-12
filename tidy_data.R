@@ -70,8 +70,30 @@ references <- data.ref %>%
     select(cas_id:evaluator_id_for_references_3) %>%
     gather(ref_num, writer_id, evaluator_id_for_references_0:evaluator_id_for_references_3, na.rm = TRUE) %>%
     mutate(ref_num = as.numeric(str_extract(ref_num, "[0-9]"))) %>%
-    group_by(cas_id, writer_id) %>%
-    distinct
+    group_by(cas_id, writer_id) 
+
+ref.first.names <- data.ref %>%
+    filter(designation_program_lookup_id == program.id) %>%
+    select(cas_id, reference_first_name_0:reference_first_name_3) %>%
+    gather(ref_num, ref_first_name, reference_first_name_0:reference_first_name_3, na.rm = TRUE) %>%
+    mutate(ref_num = as.numeric(str_extract(ref_num, "[0-9]"))) %>%
+    group_by(cas_id) %>%
+    arrange(ref_num)
+
+ref.last.names <- data.ref %>%
+    filter(designation_program_lookup_id == program.id) %>%
+    select(cas_id, reference_last_name_0:reference_last_name_3) %>%
+    gather(ref_num, ref_last_name, reference_last_name_0:reference_last_name_3, na.rm = TRUE) %>%
+    mutate(ref_num = as.numeric(str_extract(ref_num, "[0-9]"))) %>%
+    group_by(cas_id) %>%
+    arrange(ref_num)
+
+ref.names <- inner_join(ref.first.names, ref.last.names, by = c("cas_id", "ref_num")) %>%
+    filter(ref_last_name != "")
+
+references <- inner_join(references, ref.names, by = c("cas_id", "ref_num"))
+
+saveRDS(references, "references.Rds")
 
 # gather the ratings into long data format, remove those rows which correspond
 # to duplicate evaluations
