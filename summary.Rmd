@@ -2,6 +2,8 @@
 output: 
   pdf_document
 geometry: margin=0.5in
+fontsize: 9pt
+mainfont: "Arial"
 ---
 
 ```{r echo=FALSE, results='asis'}
