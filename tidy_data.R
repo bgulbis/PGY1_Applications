@@ -156,6 +156,8 @@ intent <- data.extract %>%
     mutate_each(funs(as.character(.)), contains("comments")) %>%
     gather(question, response, contains("comments"), na.rm = TRUE) %>%
     mutate(response = str_trim(str_replace_all(response, "(\\n|\\t)", " "), side = "both"),
+           response = str_replace_all(response, "â\u0080\u0099", "'"),
+           response = str_replace_all(response, "â\u0080\u0093", "-"),
            question = str_replace(question, "(.*)why_do_you_want(.*)", "motivation"),
            question = str_replace(question, "(.*)what_are_you_expecting(.*)", "expectations"),
            question = str_replace(question, "(.*)what_are_your_goals(.*)", "goals"),
@@ -237,3 +239,4 @@ score.summary <- select(applicants, cas_id:last_name, citizenship_status:two.sch
 
 write.csv(score.summary, "score_summary.csv", row.names = FALSE)
 
+saveRDS(score.summary, "score.summary.Rds")
