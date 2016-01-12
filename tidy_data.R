@@ -94,7 +94,7 @@ comments <- data.ref %>%
     extract(ref_num, c("quality", "ref_num"), "reference_(.*)_comments_([0-3])$") %>%
     mutate(ref_num = as.numeric(ref_num),
            quality = str_replace(quality, "_rating", ""),
-           comment = str_trim(str_replace_all(comment, "\\n", " "), side = "both"),
+           comment = str_trim(str_replace_all(comment, "(\\n|\\t)", " "), side = "both"),
            comment = ifelse(comment == "", NA, comment)) %>%
     inner_join(references, by=c("cas_id", "ref_num")) %>%
     select(cas_id:comment)
@@ -118,7 +118,7 @@ ref.assess <- data.ref %>%
     extract(ref_num, c("quality", "ref_num"), "reference_(.*)_([0-3])$") %>%
     mutate(ref_num = as.numeric(ref_num),
            quality = factor(quality),
-           comment = str_trim(str_replace_all(comment, "\\n", " "), side = "both"),
+           comment = str_trim(str_replace_all(comment, "(\\n|\\t)", " "), side = "both"),
            comment = ifelse(comment == "", NA, comment)) %>%
     inner_join(references, by=c("cas_id", "ref_num")) %>%
     select(cas_id:comment)
@@ -133,7 +133,7 @@ intent <- data.extract %>%
     select(cas_id, contains("comments")) %>%
     mutate_each(funs(as.character(.)), contains("comments")) %>%
     gather(question, response, contains("comments"), na.rm = TRUE) %>%
-    mutate(response = str_trim(str_replace_all(response, "\\n", " "), side = "both"),
+    mutate(response = str_trim(str_replace_all(response, "(\\n|\\t)", " "), side = "both"),
            question = str_replace(question, "(.*)why_do_you_want(.*)", "motivation"),
            question = str_replace(question, "(.*)what_are_you_expecting(.*)", "expectations"),
            question = str_replace(question, "(.*)what_are_your_goals(.*)", "goals"),
@@ -163,7 +163,7 @@ saveRDS(cv, "cv.Rds")
 # application scores
 app.scores <- data.scores %>%
     filter(designation_program_lookup_id == program.id) %>%
-    mutate_each(funs(str_trim(str_replace_all(., "\\n", " "), side = "both")), contains("comments"))
+    mutate_each(funs(str_trim(str_replace_all(., "(\\n|\\t)", " "), side = "both")), contains("comments"))
 
 names(app.scores) <- str_replace_all(names(app.scores), "assignments_application_scoring_question_", "")
 names(app.scores) <- str_replace_all(names(app.scores), "_(.?[0-9])_to_[0-9]", "")
@@ -190,7 +190,7 @@ saveRDS(app.scores, "app.scores.Rds")
 # vidyo interviews
 vidyo <- data.vidyo %>%
     filter(designation_program_lookup_id == program.id) %>%
-    mutate_each(funs(str_trim(str_replace_all(., "\\n", " "), side = "both")), contains("comments"))
+    mutate_each(funs(str_trim(str_replace_all(., "(\\n|\\t)", " "), side = "both")), contains("comments"))
 
 names(vidyo) <- str_replace_all(names(vidyo), "interview(s)?_vidyo_interview_(question_)?", "")
 names(vidyo) <- str_replace_all(names(vidyo), "critical_(.*)_task", "crit_think")
@@ -203,3 +203,15 @@ vidyo <- vidyo %>%
            remarks = as.numeric(str_extract(remarks, "[0-9]")))
 
 saveRDS(vidyo, "vidyo.Rds")
+
+# score summary
+score.summary <- select(applicants, cas_id:last_name, citizenship_status:two.schools) %>%
+    inner_join(select(app.scores, cas_id, application_reviewer:spelling_score), by = "cas_id") %>%
+    inner_join(cv, by = "cas_id") %>%
+    inner_join(select(vidyo, cas_id, interviewer:score, crit_think_score:integrity_score), by = "cas_id") %>%
+    mutate(overall.score = school_score + application_score + score) %>%
+    arrange(desc(overall.score)) %>%
+    select(cas_id, last_name, first_name, overall.score, school, everything())
+
+write.csv(score.summary, "score_summary.csv", row.names = FALSE)
+
