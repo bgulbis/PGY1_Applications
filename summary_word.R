@@ -14,6 +14,7 @@ if (!exists("applicants")) {
 }
 
 for (i in 1:nrow(applicants)) {
+# for (i in 11:11) {
     mydoc <- docx(template = "style_template.docx")
     styles(mydoc)
     
@@ -131,7 +132,7 @@ for (i in 1:nrow(applicants)) {
     mytable[, to = "header"] <- textProperties(font.size = 10, font.family = "Calibri", font.weight = "bold")
     mytable[, to = "header"] <- parCenter()
     mytable[] <- textProperties(font.size = 8, font.family = "Calibri")
-    # mytable <- setFlexTableWidths(mytable, widths = c(1.5, 0.75, 5.25))
+    mytable <- setFlexTableWidths(mytable, widths = c(1.5, 0.75, 5.25))
     mytable[, 2] <- parCenter()
     mytable[, 3] <- parLeft()
     mytable <- setZebraStyle(mytable, odd = "#eeeeee", even = "white")
@@ -151,6 +152,7 @@ for (i in 1:nrow(applicants)) {
     mytable[] <- textProperties(font.size = 8, font.family = "Calibri")
     mytable[, 2:3] <- parCenter()
     mytable[, 4] <- parLeft()
+    mytable <- setFlexTableWidths(mytable, widths = c(2, 0.75, 0.75, 4))
     mytable <- setZebraStyle(mytable, odd = "#eeeeee", even = "white")
     mydoc <- addFlexTable(mydoc, mytable)
     
@@ -176,6 +178,7 @@ for (i in 1:nrow(applicants)) {
         mytable[, 1:2] <- parCenter()
         mytable[, 3] <- parLeft()
         # mytable <- setRowsColors(mytable, i = bold.rows, colors = "#666633")
+        mytable <- setFlexTableWidths(mytable, widths = c(1.5, 1, 5))
         mytable <- setZebraStyle(mytable, odd = "#eeeeee", even = "white")
         mydoc <- addFlexTable(mydoc, mytable)
     }
@@ -192,6 +195,7 @@ for (i in 1:nrow(applicants)) {
     mytable[, to = "header"] <- parCenter()
     mytable[] <- textProperties(font.size = 8, font.family = "Calibri")
     mytable[] <- parLeft()
+    mytable <- setFlexTableWidths(mytable, widths = c(3.75, 3.75))
     mytable <- setZebraStyle(mytable, odd = "#eeeeee", even = "white")
     mydoc <- addFlexTable(mydoc, mytable)
     
@@ -209,6 +213,7 @@ for (i in 1:nrow(applicants)) {
     mytable[] <- textProperties(font.size = 8, font.family = "Calibri")
     mytable[, 1:2] <- parCenter()
     mytable[, 3] <- parLeft()
+    mytable <- setFlexTableWidths(mytable, widths = c(1.5, 0.75, 5.25))
     mytable <- setZebraStyle(mytable, odd = "#eeeeee", even = "white")
     mydoc <- addFlexTable(mydoc, mytable)
     
