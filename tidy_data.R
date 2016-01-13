@@ -228,8 +228,14 @@ vidyo <- vidyo %>%
 
 saveRDS(vidyo, "vidyo.Rds")
 
+cand.interests <- interests %>%
+    spread(interest_num, interest)
+
+names(cand.interests) <- c("cas_id", "interest1", "interest2", "interest3")
+
 # score summary
 result.summary <- select(applicants, cas_id:last_name, citizenship_status:two.schools) %>%
+    inner_join(cand.interests, by = "cas_id") %>%
     inner_join(select(app.scores, cas_id, application_reviewer:spelling_score), by = "cas_id") %>%
     inner_join(cv, by = "cas_id") %>%
     inner_join(select(vidyo, cas_id, interviewer:score, crit_think_score:integrity_score), by = "cas_id") %>%
