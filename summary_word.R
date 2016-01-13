@@ -13,9 +13,7 @@ if (!exists("applicants")) {
     applicants <- readRDS("applicants.Rds")
 }
 
-# for (i in 1:nrow(applicants)) {
-
-for (i in 1:3) {
+for (i in 1:nrow(applicants)) {
     mydoc <- docx(template = "style_template.docx")
     styles(mydoc)
     
