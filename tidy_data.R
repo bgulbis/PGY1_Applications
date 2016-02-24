@@ -21,6 +21,7 @@ data.extract <- data$API_Extraction
 data.applicant <- data$API_Applicants
 data.vidyo <- data$API_Vidyo
 data.scores <- data$API_Application_Scores
+data.interviews <- data$API_Interviews
 
 interest.areas <- c("Not Specified", "Ambulatory Care", "Cardiology", "Critical Care", 
                "Emergency Medicine", "Infectious Diseases", "Informatics", "Internal Medicine", 
@@ -251,3 +252,5 @@ result.summary <- select(applicants, cas_id:last_name, citizenship_status:two.sc
 write.csv(result.summary, "result.summary.csv", row.names = FALSE)
 
 saveRDS(result.summary, "result.summary.Rds")
+
+# interview scores ----

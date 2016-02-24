@@ -7,6 +7,7 @@
 library(httr)
 library(jsonlite)
 library(dplyr)
+library(stringr)
 
 mykey <- "36e185e0cd26c255b1c36a30b2b4468b"
 base.url <- "https://api.webadmit.org"
@@ -37,10 +38,11 @@ exportid <- GET(exportid.url, add_headers("x-api-key" = mykey))
 exportid.json <- content(exportid)
 exportid.json <- fromJSON(toJSON(exportid.json))
 
-export.names <- c("API_Applicants", "API_Extraction", "API_References", "API_Application_Scores", "API_Vidyo")
+# export.names <- c("API_Applicants", "API_Extraction", "API_References", "API_Application_Scores", "API_Vidyo")
 
 exportids <- exportid.json$exports %>%
-    filter(name %in% export.names)
+    # filter(name %in% export.names)
+    filter(str_detect(name, "^API_"))
     
 get_data <- function(export.id) {
     # select the export_id for the desired export (saved in Export Manager)
@@ -84,6 +86,7 @@ get_data <- function(export.id) {
     
     # return the downloaded data
     download.data
+    # mydata
 }
 
 data <- lapply(exportids$id, get_data)
