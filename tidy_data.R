@@ -277,7 +277,21 @@ interview_remarks_avg <- interview_remarks %>%
               interview.remarks.min = min(remark, na.rm = TRUE),
               interview.remarks.max = max(remark, na.rm = TRUE),
               interivew.remarks.var = var(remark, na.rm = TRUE),
+              interview.remarks.sd = sd(remark, na.rm = TRUE),
               interview.remarks.low = sum(remark <= 2, na.rm = TRUE))
+
+evaluator.compare <- interview_remarks %>%
+    group_by(cas_id) %>%
+    mutate(traditional.median = median(c(traditional_remarks_0, traditional_remarks_1), na.rm = TRUE),
+           mmi12.median = median(c(mmi12_remarks_0, mmi12_remarks_1), na.rm = TRUE),
+           mmi34.median = median(c(mmi34_remarks_0, mmi34_remarks_1), na.rm = TRUE),
+           resident.median = median(c(residents_remarks_0, residents_remarks_1), na.rm = TRUE)) %>%
+    select(cas_id, coachability_remarks, traditional.median:resident.median)
+
+evaluator.compare.sum <- evaluator.compare %>%
+    ungroup %>%
+    select(-cas_id) %>%
+    summarize_each(funs(mean(., na.rm = TRUE), median(., na.rm = TRUE)))
 
 # get scores from interview questions
 interview_questions <- data.interviews %>%
@@ -292,6 +306,8 @@ names(interview_questions) <- str_replace_all(names(interview_questions), "mmi_m
 names(interview_questions) <- str_replace_all(names(interview_questions), "management", "mgmt")
 names(interview_questions) <- str_replace_all(names(interview_questions), "critical_thinking", "crit_think")
 names(interview_questions) <- str_replace_all(names(interview_questions), "(difficult|large|short|unclear|new_drug_disease_state|stressful_situation)_", "")
+
+
 
 # join fit and scores
 interview_results <- select(result.summary, cas_id:school, interest1:interest3) %>%
