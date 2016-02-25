@@ -31,9 +31,11 @@ interest.areas <- c("Not Specified", "Ambulatory Care", "Cardiology", "Critical 
 applicants <- data.applicant %>%
     filter(designation_program_lookup_id == program.id) %>%
     select(-starts_with("custom_field_interest"), -starts_with("pharmacy_school")) %>%
-    mutate(custom_field_mh.tmc_rec = ifelse(custom_field_mh.tmc_rec == "Y", TRUE, FALSE),
+    # rename_(.dots = setNames(list(quote(custom_field_mh-tmc_rec)), "custom_field_mhtmc_rec")) %>%
+    mutate(mh.tmc_rec = ifelse(quote(custom_field_mh-tmc_rec) == "Y", TRUE, FALSE),
            decision_code = factor(decision_code, exclude = ""),
-           citizenship_status = factor(citizenship_status, exclude = ""))
+           citizenship_status = factor(citizenship_status, exclude = "")) %>%
+    select(-starts_with("custom_field_mh"))
 
 names(applicants) <- str_replace_all(names(applicants), "custom_field_", "")
 
@@ -146,7 +148,7 @@ ref.assess <- data.ref %>%
     inner_join(references, by=c("cas_id", "ref_num")) %>%
     select(cas_id:comment)
 
-levels(ref.assess$quality) <- c("Comments", "Weaknesses", "Strengths")
+levels(ref.assess$quality) <- c("Comments", "Weaknesses", "Other", "Strengths")
 
 saveRDS(ref.assess, "ref.assess.Rds")
 
@@ -254,3 +256,46 @@ write.csv(result.summary, "result.summary.csv", row.names = FALSE)
 saveRDS(result.summary, "result.summary.Rds")
 
 # interview scores ----
+
+# get fit scores
+interview_remarks <- data.interviews %>% 
+    select(cas_id, contains("remarks")) %>%
+    mutate_each(funs(str_extract(., ": ([0-9])")), -cas_id) %>%
+    mutate_each(funs(str_extract(., "([0-9])")), -cas_id) %>%
+    mutate_each(funs(as.numeric), -cas_id)
+
+names(interview_remarks) <- str_replace_all(names(interview_remarks), "(interview|preceptor)_", "")
+names(interview_remarks) <- str_replace_all(names(interview_remarks), "_1-2", "12")
+names(interview_remarks) <- str_replace_all(names(interview_remarks), "_3-4", "34")
+
+# summarize the fit scores
+interview_remarks_avg <- interview_remarks %>%
+    group_by(cas_id) %>%
+    gather(interview_group, remark, -cas_id) %>%
+    summarize(interview.remarks.mean = mean(remark, na.rm = TRUE),
+              interview.remarks.median = median(remark, na.rm = TRUE),
+              interview.remarks.min = min(remark, na.rm = TRUE),
+              interview.remarks.max = max(remark, na.rm = TRUE),
+              interivew.remarks.var = var(remark, na.rm = TRUE),
+              interview.remarks.low = sum(remark <= 2, na.rm = TRUE))
+
+# get scores from interview questions
+interview_questions <- data.interviews %>%
+    select(cas_id, contains("score")) %>%
+    select(cas_id, contains("question"))
+
+names(interview_questions) <- str_replace_all(names(interview_questions), "(interview|preceptor|question|score)_", "")
+names(interview_questions) <- str_replace_all(names(interview_questions), "_1-2", "")
+names(interview_questions) <- str_replace_all(names(interview_questions), "_3-4", "")
+names(interview_questions) <- str_replace_all(names(interview_questions), "-_", "")
+names(interview_questions) <- str_replace_all(names(interview_questions), "mmi_mmi", "mmi")
+names(interview_questions) <- str_replace_all(names(interview_questions), "management", "mgmt")
+names(interview_questions) <- str_replace_all(names(interview_questions), "critical_thinking", "crit_think")
+names(interview_questions) <- str_replace_all(names(interview_questions), "(difficult|large|short|unclear|new_drug_disease_state|stressful_situation)_", "")
+
+# join fit and scores
+interview_results <- select(result.summary, cas_id:school, interest1:interest3) %>%
+    inner_join(interview_remarks_avg, by = "cas_id") %>%
+    inner_join(interview_remarks, by = "cas_id") %>%
+    inner_join(interview_questions, by = "cas_id") %>%
+    arrange(desc(interview.remarks.median, interview.remarks.mean))
