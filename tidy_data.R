@@ -265,29 +265,34 @@ interview_remarks <- data.interviews %>%
     mutate_each(funs(as.numeric), -cas_id)
 
 names(interview_remarks) <- str_replace_all(names(interview_remarks), "(interview|preceptor)_", "")
-names(interview_remarks) <- str_replace_all(names(interview_remarks), "_1-2", "12")
-names(interview_remarks) <- str_replace_all(names(interview_remarks), "_3-4", "34")
+names(interview_remarks) <- str_replace_all(names(interview_remarks), "_1-2", "JC")
+names(interview_remarks) <- str_replace_all(names(interview_remarks), "_3-4", "AS")
 
 # summarize the fit scores
 interview_remarks_avg <- interview_remarks %>%
     group_by(cas_id) %>%
     gather(interview_group, remark, -cas_id) %>%
-    summarize(interview.remarks.mean = mean(remark, na.rm = TRUE),
-              interview.remarks.median = median(remark, na.rm = TRUE),
+    summarize(interview.remarks.median = median(remark, na.rm = TRUE),
+              interview.remarks.mean = mean(remark, na.rm = TRUE),
               interview.remarks.min = min(remark, na.rm = TRUE),
               interview.remarks.max = max(remark, na.rm = TRUE),
               interivew.remarks.var = var(remark, na.rm = TRUE),
-              interview.remarks.sd = sd(remark, na.rm = TRUE),
+              # interview.remarks.sd = sd(remark, na.rm = TRUE),
               interview.remarks.low = sum(remark <= 2, na.rm = TRUE))
 
 evaluator.compare <- interview_remarks %>%
     group_by(cas_id) %>%
-    mutate(traditional.median = median(c(traditional_remarks_0, traditional_remarks_1), na.rm = TRUE),
-           mmi12.median = median(c(mmi12_remarks_0, mmi12_remarks_1), na.rm = TRUE),
-           mmi34.median = median(c(mmi34_remarks_0, mmi34_remarks_1), na.rm = TRUE),
-           resident.median = median(c(residents_remarks_0, residents_remarks_1), na.rm = TRUE)) %>%
-    select(cas_id, coachability_remarks, traditional.median:resident.median)
-
+    gather(interview_group, remark, -cas_id) %>%
+    mutate(interview_group = str_replace_all(interview_group, "_remarks", ""),
+           interview_group = str_replace_all(interview_group, "coachability", "coachability_0"),
+           interview_group = str_replace_all(interview_group, "mmi12", "mmiJC"),
+           interview_group = str_replace_all(interview_group, "mmi34", "mmiAS")) %>%
+    separate(interview_group, c("interview_group", "reviewer"), "_") %>%
+    ungroup %>%
+    group_by(cas_id, interview_group) %>%
+    summarize(med.remark = median(remark, na.rm = TRUE)) %>%
+    spread(interview_group, med.remark)
+    
 evaluator.compare.sum <- evaluator.compare %>%
     ungroup %>%
     select(-cas_id) %>%
@@ -299,19 +304,65 @@ interview_questions <- data.interviews %>%
     select(cas_id, contains("question"))
 
 names(interview_questions) <- str_replace_all(names(interview_questions), "(interview|preceptor|question|score)_", "")
-names(interview_questions) <- str_replace_all(names(interview_questions), "_1-2", "")
-names(interview_questions) <- str_replace_all(names(interview_questions), "_3-4", "")
+names(interview_questions) <- str_replace_all(names(interview_questions), "_1-2", "JC")
+names(interview_questions) <- str_replace_all(names(interview_questions), "_3-4", "AS")
 names(interview_questions) <- str_replace_all(names(interview_questions), "-_", "")
-names(interview_questions) <- str_replace_all(names(interview_questions), "mmi_mmi", "mmi")
-names(interview_questions) <- str_replace_all(names(interview_questions), "management", "mgmt")
-names(interview_questions) <- str_replace_all(names(interview_questions), "critical_thinking", "crit_think")
-names(interview_questions) <- str_replace_all(names(interview_questions), "(difficult|large|short|unclear|new_drug_disease_state|stressful_situation)_", "")
+names(interview_questions) <- str_replace_all(names(interview_questions), "_mmi_[0-9]", "")
+names(interview_questions) <- str_replace_all(names(interview_questions), "time_management", "timeMgmt")
+names(interview_questions) <- str_replace_all(names(interview_questions), "critical_thinking", "critThink")
+names(interview_questions) <- str_replace_all(names(interview_questions), "difficult_person", "dfcltPerson")
+names(interview_questions) <- str_replace_all(names(interview_questions), "_(difficult_decision|large_workload)", "A")
+names(interview_questions) <- str_replace_all(names(interview_questions), "_(short_deadline|unclear_expectations)", "B")
+names(interview_questions) <- str_replace_all(names(interview_questions), "(critical|new_drug_disease_state|stressful_situation)_", "")
 
+interview_questions <- interview_questions %>%
+    group_by(cas_id) %>%
+    gather(question, score, -cas_id) %>%
+    separate(question, c("group", "question", "reviewer"), "_") 
+
+interview_score <- interview_questions %>%
+    summarize(score.sum = sum(score, na.rm = TRUE),
+              score.med = median(score, na.rm = TRUE),
+              score.min = min(score, na.rm = TRUE),
+              score.max = max(score, na.rm = TRUE),
+              score.var = var(score, na.rm = TRUE))
+
+interview_groups <- interview_questions %>%
+    ungroup %>%
+    group_by(cas_id, group)
+
+group_score <- interview_groups %>%
+    summarize(score.group = sum(score, na.rm = TRUE)) %>%
+    spread(group, score.group)
+
+group_med <- interview_groups %>%
+    summarize(med.group = median(score, na.rm = TRUE)) %>%
+    spread(group, med.group)
+
+interview_score <- inner_join(interview_score, group_score, by = "cas_id") %>%
+    inner_join(group_med, by = "cas_id")
+
+names(interview_score) <- str_replace_all(names(interview_score), "\\.x", "\\.sum")
+names(interview_score) <- str_replace_all(names(interview_score), "\\.y", "\\.med")
+
+compare_questions <- interview_questions %>%
+    ungroup %>%
+    group_by(cas_id, question) %>%
+    summarize(med.score = median(score, na.rm = TRUE)) %>%
+    spread(question, med.score) %>%
+    select(-characteristics, -mentor) %>%
+    mutate(critThinkMed = median(c(critThink, critThinkA, critThinkB, knowledge), na.rm = TRUE),
+           critThinkVar = var(c(critThink, critThinkA, critThinkB, knowledge), na.rm = TRUE),
+           timeMgmtMed = median(c(timeMgmtA, timeMgmtB), na.rm = TRUE),
+           timeMgmtVar = var(c(timeMgmtA, timeMgmtB), na.rm = TRUE)) %>%
+    select(cas_id, critThinkMed:timeMgmtVar, contains("critThink"), knowledge, everything())
 
 
 # join fit and scores
 interview_results <- select(result.summary, cas_id:school, interest1:interest3) %>%
     inner_join(interview_remarks_avg, by = "cas_id") %>%
+    inner_join(compare_questions, by = "cas_id") %>%
+    inner_join(interview_score, by = "cas_id") %>%
     inner_join(interview_remarks, by = "cas_id") %>%
-    inner_join(interview_questions, by = "cas_id") %>%
-    arrange(desc(interview.remarks.median, interview.remarks.mean))
+    # inner_join(interview_questions, by = "cas_id") %>%
+    arrange(desc(interview.remarks.median, critThinkMed))
