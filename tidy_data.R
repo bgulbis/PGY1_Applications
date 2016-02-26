@@ -367,4 +367,8 @@ interview_results <- select(result.summary, cas_id:school, interest1:interest3) 
     # inner_join(interview_questions, by = "cas_id") %>%
     arrange(desc(interview.remarks.median, critThinkMed))
 
+<<<<<<< HEAD
 write.csv(interview_results, "interview_results.csv", row.names = FALSE)
+=======
+write.csv(interview_results, "interview_results.csv", row.names = FALSE)
+>>>>>>> origin/master
