@@ -365,6 +365,6 @@ interview_results <- select(result.summary, cas_id:school, interest1:interest3) 
     inner_join(interview_score, by = "cas_id") %>%
     inner_join(interview_remarks, by = "cas_id") %>%
     # inner_join(interview_questions, by = "cas_id") %>%
-    arrange(desc(interview.remarks.median, critThinkMed))
+    arrange(desc(interview.remarks.median), desc(critThinkMed))
 
 write.csv(interview_results, "interview_results.csv", row.names = FALSE)
